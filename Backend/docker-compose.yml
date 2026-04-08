@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+  speech-service:
+    build:
+      context: ./speech_service
+      dockerfile: Dockerfile
+
+    container_name: speech-service
+
+    ports:
+      - "8001:8001"
+
+    volumes:
+      - ./speech_service/data/models:/app/data/models
+
+      - ./speech_service/secrets:/app/secrets
+
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/secrets/virtual-ai-assistant-492716-cadc67c3a151.json
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+    restart: unless-stopped
