@@ -14,26 +14,16 @@ Unity Client/[Pp]ackages/[Pp]ackage[Cc]ache/
 Unity Client/.vs/
 Unity Client/.gradle/
 
-# MemoryCaptures (very large, sensitive)
 Unity Client/[Mm]emoryCaptures/
-
-# Recordings
 Unity Client/[Rr]ecordings/
 
-# Asset Store Tools
-# Unity Client/[Aa]ssets/AssetStoreTools*
-
-# JetBrains Rider plugin
 Unity Client/[Aa]ssets/Plugins/Editor/JetBrains*
 
-# Addressables
 Unity Client/[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*/*.bin*
 
-# Streaming Assets (generated)
 Unity Client/[Aa]ssets/[Ss]treamingAssets/aa.meta
 Unity Client/[Aa]ssets/[Ss]treamingAssets/aa/*
 
-# Unity generated solution/project files
 *.csproj
 *.unityproj
 *.sln
@@ -49,50 +39,58 @@ Unity Client/[Aa]ssets/[Ss]treamingAssets/aa/*
 *.opendb
 *.VC.db
 
-# Unity meta crash files
 *.pidb.meta
 *.pdb.meta
 *.mdb.meta
 
-# Crash reports
 sysinfo.txt
 
-# Builds
 *.apk
 *.aab
 *.unitypackage
 *.app
 
-# Crashlytics
 crashlytics-build.properties
 
 
 ############################
-# BACKEND (Python)
+# BACKEND (Python - ALL SERVICES)
 ############################
 
-# Virtual environments
-Backend/venv/
-Backend/.venv/
+**/venv/
+**/.venv/
 
-# Python cache
-Backend/__pycache__/
-Backend/*.py[cod]
-Backend/*$py.class
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
 
-# Distribution / packaging
-Backend/build/
-Backend/dist/
-Backend/*.egg-info/
+**/build/
+**/dist/
+**/*.egg-info/
 
-# Environment variables
-Backend/.env
+**/.env
+**/.env.*
 
 # Logs
-Backend/*.log
+**/*.log
 
-# IDE files
-Backend/.idea/
+**/.idea/
+**/.pytest_cache/
+**/.mypy_cache/
+
+**/.ipynb_checkpoints/
+
+# =========================
+# PROJECT-SPECIFIC (IMPORTANT)
+# =========================
+
+Backend/**/secrets/
+**/secrets/
+
+Backend/**/data/
+**/data/
+
+!**/data/.gitkeep
 
 
 ############################
@@ -106,7 +104,6 @@ Backend/.idea/
 !.vscode/extensions.json
 !.vscode/*.code-snippets
 
-# Local history
 .history/
 
 
@@ -114,13 +111,10 @@ Backend/.idea/
 # GENERAL
 ############################
 
-# OS files
 .DS_Store
 Thumbs.db
 
-# Temp files
 *.swp
 *.swo
 
-# Node (just in case later)
 node_modules/
