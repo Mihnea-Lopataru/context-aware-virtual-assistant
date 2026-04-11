@@ -89,7 +89,11 @@ class UserRepository:
     def delete(self, user: User) -> None:
         """
         Deletes a user from the database.
+        Also triggers cascade delete for related sessions.
         """
+
+        if user is None:
+            return
 
         self.db.delete(user)
         self.db.commit()

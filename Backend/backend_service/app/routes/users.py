@@ -9,7 +9,7 @@ from app.models.schemas.user_schema import (
     UserUpdate,
     UserResponse
 )
-from app.repositories.user_repository import UserRepository
+from app.services.user_service import UserService
 
 
 router = APIRouter(
@@ -33,23 +33,17 @@ def create_user(
 ):
     """
     Creates a new user.
-
-    Steps:
-    1. Validate uniqueness
-    2. Create user via repository
     """
 
-    repo = UserRepository(db)
+    service = UserService(db)
 
-    existing_user = repo.get_by_username(user_data.username)
-
-    if existing_user:
+    try:
+        return service.create_user(user_data.username)
+    except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Username already exists."
+            detail=str(e)
         )
-
-    return repo.create(username=user_data.username)
 
 
 # =========================
@@ -67,8 +61,8 @@ def get_users(
     Retrieves all users.
     """
 
-    repo = UserRepository(db)
-    return repo.get_all()
+    service = UserService(db)
+    return service.get_all_users()
 
 
 # =========================
@@ -87,9 +81,9 @@ def get_user(
     Retrieves a single user by ID.
     """
 
-    repo = UserRepository(db)
+    service = UserService(db)
 
-    user = repo.get_by_id(user_id)
+    user = service.get_user(user_id)
 
     if not user:
         raise HTTPException(
@@ -117,9 +111,19 @@ def update_user(
     Updates a user (partial update supported).
     """
 
-    repo = UserRepository(db)
+    service = UserService(db)
 
-    user = repo.get_by_id(user_id)
+    try:
+        user = service.update_user(
+            user_id,
+            username=user_data.username,
+            is_active=user_data.is_active
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
 
     if not user:
         raise HTTPException(
@@ -127,22 +131,7 @@ def update_user(
             detail="User not found."
         )
 
-    if user_data.username:
-        existing_user = repo.get_by_username(user_data.username)
-
-        if existing_user and existing_user.id != user_id:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Username already exists."
-            )
-
-    updated_user = repo.update(
-        user,
-        username=user_data.username,
-        is_active=user_data.is_active
-    )
-
-    return updated_user
+    return user
 
 
 # =========================
@@ -161,14 +150,12 @@ def delete_user(
     Deletes a user.
     """
 
-    repo = UserRepository(db)
+    service = UserService(db)
 
-    user = repo.get_by_id(user_id)
+    success = service.delete_user(user_id)
 
-    if not user:
+    if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found."
         )
-
-    repo.delete(user)
