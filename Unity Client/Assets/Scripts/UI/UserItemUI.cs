@@ -11,9 +11,6 @@ public class UserItemUI : MonoBehaviour
     private UserResponse user;
     private System.Action<UserResponse> onClick;
 
-    // =========================
-    // SETUP
-    // =========================
     public void Setup(UserResponse user, System.Action<UserResponse> onClick)
     {
         this.user = user;
@@ -25,9 +22,6 @@ public class UserItemUI : MonoBehaviour
         button.onClick.AddListener(() => this.onClick?.Invoke(this.user));
     }
 
-    // =========================
-    // VISUAL SELECT STATE
-    // =========================
     public void SetSelected(bool selected)
     {
         if (selected)
@@ -42,9 +36,6 @@ public class UserItemUI : MonoBehaviour
         }
     }
 
-    // =========================
-    // USER ID RETRIEVAL
-    // =========================
     public int GetUserId()
     {
         return user.Id;

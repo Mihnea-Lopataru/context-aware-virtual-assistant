@@ -4,9 +4,6 @@ using UnityEngine;
 
 public class SessionApi
 {
-    // =========================
-    // START SESSION
-    // =========================
     public async Task<SessionResponse> StartSession(int userId)
     {
         var request = new SessionStartRequest
@@ -20,9 +17,6 @@ public class SessionApi
         );
     }
 
-    // =========================
-    // UPDATE SESSION (ACTIVITY)
-    // =========================
     public async Task<SessionResponse> UpdateSession(int sessionId)
     {
         var request = new SessionUpdateRequest
@@ -36,9 +30,6 @@ public class SessionApi
         );
     }
 
-    // =========================
-    // END SESSION
-    // =========================
     public async Task EndSession(int sessionId)
     {
         var request = new SessionEndRequest

@@ -30,17 +30,11 @@ public class ContinueButtonController : MonoBehaviour
         continueButton.onClick.RemoveListener(OnContinueClicked);
     }
 
-    // =========================
-    // EVENT HANDLER
-    // =========================
     private void HandleUserChanged(UserResponse user)
     {
         UpdateButtonState();
     }
 
-    // =========================
-    // BUTTON STATE
-    // =========================
     private void UpdateButtonState()
     {
         bool hasUser = UserManager.Instance != null &&
@@ -49,9 +43,6 @@ public class ContinueButtonController : MonoBehaviour
         continueButton.interactable = hasUser;
     }
 
-    // =========================
-    // CLICK HANDLER
-    // =========================
     private async void OnContinueClicked()
     {
         var user = UserManager.Instance.CurrentUser;

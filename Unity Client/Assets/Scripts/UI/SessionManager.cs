@@ -20,9 +20,6 @@ public class SessionManager : MonoBehaviour
         sessionApi = new SessionApi();
     }
 
-    // =========================
-    // START SESSION
-    // =========================
     public async Task<SessionResponse> StartSession()
     {
         var user = UserManager.Instance.CurrentUser;
@@ -42,9 +39,6 @@ public class SessionManager : MonoBehaviour
         return session;
     }
 
-    // =========================
-    // END SESSION
-    // =========================
     public async Task EndSession()
     {
         if (CurrentSession == null)

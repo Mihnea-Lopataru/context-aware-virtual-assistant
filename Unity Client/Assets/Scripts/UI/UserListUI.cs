@@ -15,21 +15,14 @@ public class UserListUI : MonoBehaviour
         await LoadUsers();
     }
 
-    // =========================
-    // LOAD USERS
-    // =========================
     public async System.Threading.Tasks.Task LoadUsers()
     {
         var users = await UserManager.Instance.GetUsers();
         Populate(users);
     }
 
-    // =========================
-    // POPULATE LIST
-    // =========================
     private void Populate(List<UserResponse> users)
     {
-        // clear existing
         foreach (var item in items)
         {
             Destroy(item.gameObject);
@@ -62,18 +55,12 @@ public class UserListUI : MonoBehaviour
         }
     }
 
-    // =========================
-    // CLICK HANDLER
-    // =========================
     private void OnUserClicked(UserResponse user)
     {
         UserManager.Instance.SelectUser(user);
         UpdateSelection(user);
     }
 
-    // =========================
-    // UPDATE VISUAL SELECTION
-    // =========================
     private void UpdateSelection(UserResponse selectedUser)
     {
         foreach (var item in items)

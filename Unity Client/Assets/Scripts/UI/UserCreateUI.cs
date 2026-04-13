@@ -19,9 +19,6 @@ public class UserCreateUI : MonoBehaviour
             messageText.gameObject.SetActive(false);
     }
 
-    // =========================
-    // BUTTON CLICK
-    // =========================
     public async void OnCreateUserClicked()
     {
         string username = usernameInput.text.Trim();
@@ -36,14 +33,12 @@ public class UserCreateUI : MonoBehaviour
         {
             var user = await UserManager.Instance.CreateUser(username);
 
-            // 🔥 auto-select (deja făcut în UserManager, dar safe)
             UserManager.Instance.SelectUser(user);
 
             usernameInput.text = "";
 
             ShowMessage("User created successfully!", false);
 
-            // 🔥 refresh list
             await userListUI.LoadUsers();
         }
         catch (System.Exception e)
@@ -52,9 +47,6 @@ public class UserCreateUI : MonoBehaviour
         }
     }
 
-    // =========================
-    // MESSAGE HANDLING
-    // =========================
     private void ShowMessage(string message, bool isError)
     {
         if (messageText == null) return;
@@ -64,9 +56,6 @@ public class UserCreateUI : MonoBehaviour
         messageText.color = isError ? errorColor : successColor;
     }
 
-    // =========================
-    // CLEAN ERROR MESSAGE
-    // =========================
     private string ParseError(string rawError)
     {
         if (rawError.Contains("400"))

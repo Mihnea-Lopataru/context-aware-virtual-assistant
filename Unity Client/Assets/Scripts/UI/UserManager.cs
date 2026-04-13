@@ -28,9 +28,6 @@ public class UserManager : MonoBehaviour
         userApi = new UserApi();
     }
 
-    // =========================
-    // LOAD USER (PlayerPrefs)
-    // =========================
     public void LoadUser()
     {
         if (PlayerPrefs.HasKey(USER_ID_KEY))
@@ -51,9 +48,6 @@ public class UserManager : MonoBehaviour
         }
     }
 
-    // =========================
-    // SAVE USER
-    // =========================
     private void SaveUser(UserResponse user)
     {
         PlayerPrefs.SetInt(USER_ID_KEY, user.Id);
@@ -67,9 +61,6 @@ public class UserManager : MonoBehaviour
         Debug.Log($"Saved user: {user.Username}");
     }
 
-    // =========================
-    // CREATE USER
-    // =========================
     public async Task<UserResponse> CreateUser(string username)
     {
         var user = await userApi.CreateUser(username);
@@ -79,25 +70,16 @@ public class UserManager : MonoBehaviour
         return user;
     }
 
-    // =========================
-    // GET USERS
-    // =========================
     public async Task<List<UserResponse>> GetUsers()
     {
         return await userApi.GetUsers();
     }
 
-    // =========================
-    // SELECT USER
-    // =========================
     public void SelectUser(UserResponse user)
     {
         SaveUser(user);
     }
 
-    // =========================
-    // CLEAR USER (optional)
-    // =========================
     public void ClearUser()
     {
         PlayerPrefs.DeleteKey(USER_ID_KEY);

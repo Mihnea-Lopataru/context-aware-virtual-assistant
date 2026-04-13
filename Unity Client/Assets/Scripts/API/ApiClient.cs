@@ -25,9 +25,6 @@ public class ApiClient : MonoBehaviour
         }
     }
 
-    // =========================
-    // GET
-    // =========================
     public async Task<T> Get<T>(string endpoint)
     {
         string url = $"{baseUrl}{endpoint}";
@@ -38,9 +35,6 @@ public class ApiClient : MonoBehaviour
         }
     }
 
-    // =========================
-    // POST
-    // =========================
     public async Task<T> Post<T>(string endpoint, object body)
     {
         string url = $"{baseUrl}{endpoint}";
@@ -59,9 +53,6 @@ public class ApiClient : MonoBehaviour
         }
     }
 
-    // =========================
-    // PATCH
-    // =========================
     public async Task<T> Patch<T>(string endpoint, object body)
     {
         string url = $"{baseUrl}{endpoint}";
@@ -80,9 +71,6 @@ public class ApiClient : MonoBehaviour
         }
     }
 
-    // =========================
-    // CORE
-    // =========================
     private async Task<T> SendRequest<T>(UnityWebRequest request)
     {
         var operation = request.SendWebRequest();

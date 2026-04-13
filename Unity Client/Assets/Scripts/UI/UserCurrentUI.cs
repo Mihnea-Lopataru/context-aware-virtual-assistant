@@ -7,7 +7,6 @@ public class UserCurrentUI : MonoBehaviour
 
     private void Start()
     {
-        // subscribe ONCE (safe)
         if (UserManager.Instance != null)
         {
             UserManager.Instance.OnUserChanged += HandleUserChanged;
@@ -24,17 +23,11 @@ public class UserCurrentUI : MonoBehaviour
         }
     }
 
-    // =========================
-    // EVENT HANDLER
-    // =========================
     private void HandleUserChanged(UserResponse user)
     {
         ForceUpdate();
     }
 
-    // =========================
-    // UI UPDATE
-    // =========================
     private void ForceUpdate()
     {
         var user = UserManager.Instance?.CurrentUser;
