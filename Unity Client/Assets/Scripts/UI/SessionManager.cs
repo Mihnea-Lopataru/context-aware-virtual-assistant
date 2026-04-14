@@ -9,8 +9,21 @@ public class SessionManager : MonoBehaviour
 
     public SessionResponse CurrentSession { get; private set; }
 
+    public int CurrentSessionId => CurrentSession?.Id ?? -1;
+
+    public bool HasActiveSession => CurrentSession != null;
+
+    [Header("Settings")]
+    [SerializeField] private float heartbeatInterval = 15f;
+
     private void Awake()
     {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
         Instance = this;
         DontDestroyOnLoad(gameObject);
     }
@@ -18,6 +31,9 @@ public class SessionManager : MonoBehaviour
     private void Start()
     {
         sessionApi = new SessionApi();
+
+        // 🔥 start heartbeat loop
+        InvokeRepeating(nameof(SendHeartbeat), heartbeatInterval, heartbeatInterval);
     }
 
     public async Task<SessionResponse> StartSession()
@@ -34,7 +50,7 @@ public class SessionManager : MonoBehaviour
 
         CurrentSession = session;
 
-        Debug.Log($"Session started: {session.Id}");
+        Debug.Log($"[Session] Started: {session.Id}");
 
         return session;
     }
@@ -46,9 +62,25 @@ public class SessionManager : MonoBehaviour
 
         await sessionApi.EndSession(CurrentSession.Id);
 
-        Debug.Log($"Session ended: {CurrentSession.Id}");
+        Debug.Log($"[Session] Ended: {CurrentSession.Id}");
 
         CurrentSession = null;
+    }
+
+    private async void SendHeartbeat()
+    {
+        if (!HasActiveSession)
+            return;
+
+        try
+        {
+            await sessionApi.UpdateSession(CurrentSessionId);
+            Debug.Log("[Session] Heartbeat sent.");
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogWarning($"[Session] Heartbeat failed: {ex.Message}");
+        }
     }
 
     private async void OnApplicationQuit()

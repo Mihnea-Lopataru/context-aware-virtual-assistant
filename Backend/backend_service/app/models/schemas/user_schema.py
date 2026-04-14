@@ -1,58 +1,46 @@
 from datetime import datetime
-from pydantic import BaseModel, Field
+from typing import Optional
+
+from pydantic import BaseModel, Field, ConfigDict
 
 
-# =========================
-# BASE SCHEMA
-# =========================
 class UserBase(BaseModel):
     """
-    Shared user fields.
+    Base user fields.
     """
 
     username: str = Field(
         ...,
         min_length=3,
-        max_length=100,
-        description="Unique username of the user"
+        max_length=100
     )
 
 
-# =========================
-# CREATE SCHEMA
-# =========================
 class UserCreate(UserBase):
     """
-    Schema used when creating a new user.
+    Payload for creating a user.
     """
 
     pass
 
 
-# =========================
-# UPDATE SCHEMA
-# =========================
 class UserUpdate(BaseModel):
     """
-    Schema used for updating user data.
-    Allows partial updates.
+    Payload for updating a user.
     """
 
-    username: str | None = Field(
+    username: Optional[str] = Field(
         default=None,
         min_length=3,
         max_length=100
     )
 
-    is_active: bool | None = None
+    is_active: Optional[bool] = None
 
 
-# =========================
-# RESPONSE SCHEMA
-# =========================
 class UserResponse(UserBase):
     """
-    Schema returned to the client.
+    User data returned to client.
     """
 
     id: int
@@ -60,5 +48,4 @@ class UserResponse(UserBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True  # required for SQLAlchemy ORM
+    model_config = ConfigDict(from_attributes=True)

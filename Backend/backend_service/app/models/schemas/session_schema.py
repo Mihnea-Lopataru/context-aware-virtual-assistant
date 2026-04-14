@@ -1,82 +1,54 @@
 from datetime import datetime
-from typing import Any, Dict, Optional
-from enum import Enum
+from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
-
-# =========================
-# ENUM
-# =========================
-class SessionStatus(str, Enum):
-    active = "active"
-    closed = "closed"
-    expired = "expired"
+from app.models.session import SessionStatus
 
 
-# =========================
-# BASE SCHEMA
-# =========================
 class SessionBase(BaseModel):
     """
-    Shared session fields.
+    Base session metadata.
     """
 
     current_scene: Optional[str] = Field(
         default=None,
-        max_length=100,
-        description="Current Unity scene"
+        max_length=100
     )
 
     current_objective: Optional[str] = Field(
         default=None,
-        max_length=255,
-        description="Current objective or task"
-    )
-
-    context_data: Optional[Dict[str, Any]] = Field(
-        default=None,
-        description="Dynamic context data (position, inventory, puzzle state, etc.)"
-    )
-
-    behavior_summary: Optional[Dict[str, Any]] = Field(
-        default=None,
-        description="Aggregated behavior data for adaptation"
+        max_length=255
     )
 
 
-# =========================
-# CREATE SCHEMA
-# =========================
 class SessionCreate(SessionBase):
     """
-    Schema used when creating a session.
+    Payload for starting a session.
     """
 
     user_id: int
 
 
-# =========================
-# UPDATE SCHEMA
-# =========================
 class SessionUpdate(BaseModel):
     """
-    Schema used for updating session state.
-    Supports partial updates.
+    Payload for updating session metadata.
     """
 
-    current_scene: Optional[str] = None
-    current_objective: Optional[str] = None
-    context_data: Optional[Dict[str, Any]] = None
-    behavior_summary: Optional[Dict[str, Any]] = None
+    current_scene: Optional[str] = Field(
+        default=None,
+        max_length=100
+    )
+
+    current_objective: Optional[str] = Field(
+        default=None,
+        max_length=255
+    )
 
 
-# =========================
-# RESPONSE SCHEMA
-# =========================
 class SessionResponse(SessionBase):
     """
-    Schema returned to the client.
+    Session data returned to client.
     """
 
     id: int
@@ -87,5 +59,4 @@ class SessionResponse(SessionBase):
     last_activity_at: datetime
     ended_at: Optional[datetime]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

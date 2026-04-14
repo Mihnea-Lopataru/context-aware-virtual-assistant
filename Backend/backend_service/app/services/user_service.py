@@ -7,16 +7,9 @@ from app.repositories.user_repository import UserRepository
 
 
 class UserService:
-    """
-    Handles business logic for users.
-    """
-
     def __init__(self, db: Session):
         self.repo = UserRepository(db)
 
-    # =========================
-    # CREATE
-    # =========================
     def create_user(self, username: str) -> User:
         existing_user = self.repo.get_by_username(username)
 
@@ -25,39 +18,30 @@ class UserService:
 
         return self.repo.create(username=username)
 
-    # =========================
-    # READ
-    # =========================
     def get_user(self, user_id: int) -> Optional[User]:
         return self.repo.get_by_id(user_id)
 
     def get_all_users(self) -> List[User]:
         return self.repo.get_all()
 
-    # =========================
-    # UPDATE
-    # =========================
     def update_user(self, user_id: int, **kwargs) -> Optional[User]:
         user = self.repo.get_by_id(user_id)
 
         if not user:
             return None
 
-        if "username" in kwargs and kwargs["username"]:
+        if "username" in kwargs:
             existing = self.repo.get_by_username(kwargs["username"])
             if existing and existing.id != user_id:
                 raise ValueError("Username already exists.")
 
         return self.repo.update(user, **kwargs)
 
-    # =========================
-    # DELETE
-    # =========================
-    def delete_user(self, user_id: int) -> bool:
+    def delete_user(self, user_id: int) -> Optional[User]:
         user = self.repo.get_by_id(user_id)
 
         if not user:
-            return False
+            return None
 
         self.repo.delete(user)
-        return True
+        return user

@@ -40,6 +40,7 @@ parso==0.8.6
 pickleshare==0.7.5
 platformdirs==4.9.6
 prompt_toolkit==3.0.52
+psycopg2-binary==2.9.11
 pure_eval==0.2.3
 pydantic==2.12.5
 pydantic_core==2.41.5
@@ -68,3 +69,4 @@ wcwidth==0.6.0
 webencodings==0.5.1
 websockets==16.0
 yarg==0.1.9
+psycopg2-binary==2.9.11

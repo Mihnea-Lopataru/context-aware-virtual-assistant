@@ -5,15 +5,9 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 
-# =========================
-# LOAD ENVIRONMENT VARIABLES
-# =========================
 
 load_dotenv()
 
-# =========================
-# DATABASE URL BUILDER
-# =========================
 
 def _build_database_url() -> str:
     """
@@ -44,9 +38,6 @@ def _build_database_url() -> str:
 
 DATABASE_URL = _build_database_url()
 
-# =========================
-# ENGINE CONFIGURATION
-# =========================
 
 engine = create_engine(
     DATABASE_URL,
@@ -56,9 +47,6 @@ engine = create_engine(
     future=True
 )
 
-# =========================
-# SESSION FACTORY
-# =========================
 
 SessionLocal = sessionmaker(
     bind=engine,
@@ -67,9 +55,6 @@ SessionLocal = sessionmaker(
     future=True
 )
 
-# =========================
-# FASTAPI DEPENDENCY
-# =========================
 
 def get_db() -> Generator[Session, None, None]:
     """

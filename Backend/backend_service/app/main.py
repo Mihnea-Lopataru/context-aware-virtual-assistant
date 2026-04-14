@@ -8,12 +8,15 @@ from app.models.db.base import Base
 # =========================
 from app.models import user
 from app.models import session
+from app.models import event
 
 # =========================
 # IMPORT ROUTES
 # =========================
 from app.routes import users
 from app.routes import sessions
+from app.routes import events
+from app.routes import hints
 
 
 app = FastAPI(
@@ -37,6 +40,8 @@ Base.metadata.create_all(bind=engine)
 # =========================
 app.include_router(users.router)
 app.include_router(sessions.router)
+app.include_router(events.router)
+app.include_router(hints.router)
 
 
 # =========================

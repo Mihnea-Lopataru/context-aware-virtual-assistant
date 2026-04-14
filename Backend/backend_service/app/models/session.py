@@ -2,16 +2,16 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from enum import Enum
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, List
 
 from sqlalchemy import DateTime, Enum as SqlEnum, ForeignKey, Index, String
-from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.db.base import Base
 
 if TYPE_CHECKING:
     from app.models.user import User
+    from app.models.event import Event
 
 
 class SessionStatus(str, Enum):
@@ -21,29 +21,10 @@ class SessionStatus(str, Enum):
 
 
 class Session(Base):
-    """
-    ORM model for user gameplay / interaction sessions.
-
-    A session:
-    - belongs to exactly one user
-    - can be active, closed, or expired
-    - stores only compact, relevant contextual information
-    - is preserved after closure for future adaptation / LLM context building
-    """
-
     __tablename__ = "sessions"
 
-    # =========================
-    # PRIMARY KEY
-    # =========================
-    id: Mapped[int] = mapped_column(
-        primary_key=True,
-        index=True
-    )
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
 
-    # =========================
-    # RELATIONSHIP / OWNERSHIP
-    # =========================
     user_id: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
@@ -54,9 +35,12 @@ class Session(Base):
         back_populates="sessions"
     )
 
-    # =========================
-    # STATUS
-    # =========================
+    events: Mapped[List["Event"]] = relationship(
+        "Event",
+        back_populates="session",
+        cascade="all, delete-orphan"
+    )
+
     status: Mapped[SessionStatus] = mapped_column(
         SqlEnum(SessionStatus, name="session_status"),
         default=SessionStatus.ACTIVE,
@@ -64,9 +48,6 @@ class Session(Base):
         index=True
     )
 
-    # =========================
-    # TIMESTAMPS
-    # =========================
     started_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
@@ -85,9 +66,7 @@ class Session(Base):
         nullable=True
     )
 
-    # =========================
-    # COMPACT CONTEXT FOR LLM / ADAPTATION
-    # =========================
+    # ⚠️ OPTIONAL (poți elimina complet dacă vrei backend 100% generic)
     current_scene: Mapped[str | None] = mapped_column(
         String(100),
         nullable=True
@@ -95,21 +74,6 @@ class Session(Base):
 
     current_objective: Mapped[str | None] = mapped_column(
         String(255),
-        nullable=True
-    )
-
-    context_data: Mapped[dict[str, Any] | None] = mapped_column(
-        JSONB,
-        nullable=True
-    )
-
-    behavior_summary: Mapped[dict[str, Any] | None] = mapped_column(
-        JSONB,
-        nullable=True
-    )
-
-    session_summary: Mapped[dict[str, Any] | None] = mapped_column(
-        JSONB,
         nullable=True
     )
 

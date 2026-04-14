@@ -18,25 +18,20 @@ router = APIRouter(
 )
 
 
-# =========================
-# CREATE
-# =========================
+def get_user_service(db: Session = Depends(get_db)) -> UserService:
+    return UserService(db)
+
+
 @router.post(
-    "/",
+    "",
     response_model=UserResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Create a new user"
 )
 def create_user(
     user_data: UserCreate,
-    db: Session = Depends(get_db)
+    service: UserService = Depends(get_user_service)
 ):
-    """
-    Creates a new user.
-    """
-
-    service = UserService(db)
-
     try:
         return service.create_user(user_data.username)
     except ValueError as e:
@@ -46,28 +41,17 @@ def create_user(
         )
 
 
-# =========================
-# READ ALL
-# =========================
 @router.get(
-    "/",
+    "",
     response_model=List[UserResponse],
     summary="Get all users"
 )
 def get_users(
-    db: Session = Depends(get_db)
+    service: UserService = Depends(get_user_service)
 ):
-    """
-    Retrieves all users.
-    """
-
-    service = UserService(db)
     return service.get_all_users()
 
 
-# =========================
-# READ ONE
-# =========================
 @router.get(
     "/{user_id}",
     response_model=UserResponse,
@@ -75,14 +59,8 @@ def get_users(
 )
 def get_user(
     user_id: int,
-    db: Session = Depends(get_db)
+    service: UserService = Depends(get_user_service)
 ):
-    """
-    Retrieves a single user by ID.
-    """
-
-    service = UserService(db)
-
     user = service.get_user(user_id)
 
     if not user:
@@ -94,9 +72,6 @@ def get_user(
     return user
 
 
-# =========================
-# UPDATE
-# =========================
 @router.put(
     "/{user_id}",
     response_model=UserResponse,
@@ -105,20 +80,12 @@ def get_user(
 def update_user(
     user_id: int,
     user_data: UserUpdate,
-    db: Session = Depends(get_db)
+    service: UserService = Depends(get_user_service)
 ):
-    """
-    Updates a user (partial update supported).
-    """
-
-    service = UserService(db)
-
     try:
-        user = service.update_user(
-            user_id,
-            username=user_data.username,
-            is_active=user_data.is_active
-        )
+        update_data = user_data.model_dump(exclude_unset=True)
+
+        user = service.update_user(user_id, **update_data)
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -134,9 +101,6 @@ def update_user(
     return user
 
 
-# =========================
-# DELETE
-# =========================
 @router.delete(
     "/{user_id}",
     status_code=status.HTTP_204_NO_CONTENT,
@@ -144,14 +108,8 @@ def update_user(
 )
 def delete_user(
     user_id: int,
-    db: Session = Depends(get_db)
+    service: UserService = Depends(get_user_service)
 ):
-    """
-    Deletes a user.
-    """
-
-    service = UserService(db)
-
     success = service.delete_user(user_id)
 
     if not success:

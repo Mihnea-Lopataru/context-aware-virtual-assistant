@@ -15,27 +15,15 @@ if TYPE_CHECKING:
 class User(Base):
     """
     ORM model for application users.
-
-    Fields are designed to support:
-    - identification (username)
-    - lifecycle tracking (created_at, updated_at)
-    - soft deletion (is_active)
-    - future personalization / analytics
     """
 
     __tablename__ = "users"
 
-    # =========================
-    # PRIMARY KEY
-    # =========================
     id: Mapped[int] = mapped_column(
         primary_key=True,
         index=True
     )
 
-    # =========================
-    # CORE FIELDS
-    # =========================
     username: Mapped[str] = mapped_column(
         String(100),
         unique=True,
@@ -43,18 +31,12 @@ class User(Base):
         nullable=False
     )
 
-    # =========================
-    # STATUS
-    # =========================
     is_active: Mapped[bool] = mapped_column(
         Boolean,
         default=True,
         nullable=False
     )
 
-    # =========================
-    # TIMESTAMPS
-    # =========================
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
@@ -68,9 +50,6 @@ class User(Base):
         nullable=False
     )
 
-    # =========================
-    # RELATIONSHIPS
-    # =========================
     sessions: Mapped[list["Session"]] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",

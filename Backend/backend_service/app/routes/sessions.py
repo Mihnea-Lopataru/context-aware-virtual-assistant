@@ -16,9 +16,10 @@ router = APIRouter(
 )
 
 
-# =========================
-# START SESSION
-# =========================
+def get_session_service(db: Session = Depends(get_db)) -> SessionService:
+    return SessionService(db)
+
+
 @router.post(
     "/start",
     response_model=SessionResponse,
@@ -27,30 +28,14 @@ router = APIRouter(
 )
 def start_session(
     data: SessionCreate,
-    db: Session = Depends(get_db)
+    service: SessionService = Depends(get_session_service)
 ):
-    """
-    Starts a new session for a user.
-
-    Rules:
-    - Only one active session per user
-    - Existing active session is closed automatically
-    """
-
-    service = SessionService(db)
-
     return service.start_session(
         user_id=data.user_id,
-        current_scene=data.current_scene,
-        current_objective=data.current_objective,
-        context_data=data.context_data,
-        behavior_summary=data.behavior_summary
+        **data.model_dump(exclude_unset=True, exclude={"user_id"})
     )
 
 
-# =========================
-# GET ACTIVE SESSION
-# =========================
 @router.get(
     "/active/{user_id}",
     response_model=SessionResponse,
@@ -58,15 +43,8 @@ def start_session(
 )
 def get_active_session(
     user_id: int,
-    db: Session = Depends(get_db)
+    service: SessionService = Depends(get_session_service)
 ):
-    """
-    Retrieves active session.
-    Applies timeout automatically.
-    """
-
-    service = SessionService(db)
-
     session = service.get_active_session(user_id)
 
     if not session:
@@ -78,9 +56,6 @@ def get_active_session(
     return session
 
 
-# =========================
-# UPDATE SESSION (HEARTBEAT)
-# =========================
 @router.patch(
     "/{session_id}",
     response_model=SessionResponse,
@@ -89,22 +64,13 @@ def get_active_session(
 def update_session(
     session_id: int,
     data: SessionUpdate,
-    db: Session = Depends(get_db)
+    service: SessionService = Depends(get_session_service)
 ):
-    """
-    Updates session data and refreshes activity.
-
-    Typically called frequently by Unity.
-    """
-
-    service = SessionService(db)
+    update_data = data.model_dump(exclude_unset=True)
 
     session = service.update_session(
         session_id,
-        current_scene=data.current_scene,
-        current_objective=data.current_objective,
-        context_data=data.context_data,
-        behavior_summary=data.behavior_summary
+        **update_data
     )
 
     if not session:
@@ -116,9 +82,6 @@ def update_session(
     return session
 
 
-# =========================
-# END SESSION
-# =========================
 @router.post(
     "/{session_id}/end",
     response_model=SessionResponse,
@@ -126,14 +89,8 @@ def update_session(
 )
 def end_session(
     session_id: int,
-    db: Session = Depends(get_db)
+    service: SessionService = Depends(get_session_service)
 ):
-    """
-    Manually ends a session.
-    """
-
-    service = SessionService(db)
-
     session = service.end_session(session_id)
 
     if not session:

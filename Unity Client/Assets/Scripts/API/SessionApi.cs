@@ -19,14 +19,9 @@ public class SessionApi
 
     public async Task<SessionResponse> UpdateSession(int sessionId)
     {
-        var request = new SessionUpdateRequest
-        {
-            LastActivityAt = DateTime.UtcNow.ToString("o")
-        };
-
         return await ApiClient.Instance.Patch<SessionResponse>(
             $"/sessions/{sessionId}",
-            request
+            new SessionUpdateRequest()
         );
     }
 

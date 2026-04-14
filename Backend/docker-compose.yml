@@ -1,4 +1,45 @@
 services:
+
+  # -----------------------------
+  # Backend Service
+  # -----------------------------
+  backend-service:
+    build:
+      context: ./backend_service
+      dockerfile: Dockerfile
+
+    container_name: backend-service
+
+    ports:
+      - "8000:8000"
+
+    environment:
+      - DB_USER=admin
+      - DB_PASSWORD=admin
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=ai_assistant
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    volumes:
+      - ./backend_service:/app
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+    restart: unless-stopped
+
+
+  # -----------------------------
+  # Speech Service
+  # -----------------------------
   speech-service:
     build:
       context: ./speech_service
@@ -26,6 +67,9 @@ services:
     restart: unless-stopped
 
 
+  # -----------------------------
+  # PostgreSQL
+  # -----------------------------
   postgres:
     image: postgres:15
     container_name: postgres-db
@@ -46,6 +90,7 @@ services:
       interval: 60s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
     restart: unless-stopped
 

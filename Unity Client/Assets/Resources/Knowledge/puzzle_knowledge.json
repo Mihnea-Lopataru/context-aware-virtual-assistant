@@ -1,0 +1,52 @@
+{
+  "systems": ["red", "yellow"],
+
+  "pipe_types": [
+    {
+      "type": "Straight",
+      "connections": 2,
+      "description": "connects two opposite directions",
+      "enabled": true
+    },
+    {
+      "type": "Corner",
+      "connections": 2,
+      "description": "connects two adjacent directions",
+      "enabled": true
+    },
+    {
+      "type": "ThreeWay",
+      "connections": 3,
+      "description": "connects three directions",
+      "enabled": true
+    },
+    {
+      "type": "Cross",
+      "connections": 4,
+      "description": "connects four directions",
+      "enabled": true
+    },
+    {
+      "type": "StraightWithValve",
+      "connections": 2,
+      "description": "acts like a straight pipe but includes a valve",
+      "enabled": false
+    }
+  ],
+
+  "rules": [
+    "pipes must match the color of the slot",
+    "pipes must match the required type of the slot",
+    "pipes can only connect to pipes of the same color",
+    "not all pipes are required to complete the puzzle"
+  ],
+
+  "common_mistakes": [
+    "using correct type but wrong color",
+    "using correct color but wrong type",
+    "trying to use all available pipes",
+    "repeating the same incorrect placement"
+  ],
+
+  "goal": "fill all slots with the correct pipe type and color"
+}
