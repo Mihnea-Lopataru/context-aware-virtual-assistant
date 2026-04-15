@@ -4,13 +4,23 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
 using Newtonsoft.Json;
+using System.Collections.Generic;
+
+public enum ApiServiceType
+{
+    Backend,
+    Speech
+}
 
 public class ApiClient : MonoBehaviour
 {
     public static ApiClient Instance;
 
     [Header("API Config")]
-    [SerializeField] private string baseUrl = "http://localhost:8000";
+    [SerializeField] private string backendBaseUrl = "http://localhost:8000";
+    [SerializeField] private string speechBaseUrl = "http://localhost:8001";
+
+    private Dictionary<ApiServiceType, string> baseUrls;
 
     private void Awake()
     {
@@ -18,6 +28,12 @@ public class ApiClient : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+
+            baseUrls = new Dictionary<ApiServiceType, string>
+            {
+                { ApiServiceType.Backend, backendBaseUrl },
+                { ApiServiceType.Speech, speechBaseUrl }
+            };
         }
         else
         {
@@ -25,53 +41,68 @@ public class ApiClient : MonoBehaviour
         }
     }
 
-    public async Task<T> Get<T>(string endpoint)
+    public Task<T> Get<T>(string endpoint, ApiServiceType service = ApiServiceType.Backend)
     {
-        string url = $"{baseUrl}{endpoint}";
-
-        using (UnityWebRequest request = UnityWebRequest.Get(url))
-        {
-            return await SendRequest<T>(request);
-        }
+        return SendRequest<T>(endpoint, "GET", null, service);
     }
 
-    public async Task<T> Post<T>(string endpoint, object body)
+    public Task<T> Post<T>(string endpoint, object body, ApiServiceType service = ApiServiceType.Backend)
     {
+        return SendRequest<T>(endpoint, "POST", body, service);
+    }
+
+    public Task<T> Patch<T>(string endpoint, object body, ApiServiceType service = ApiServiceType.Backend)
+    {
+        return SendRequest<T>(endpoint, "PATCH", body, service);
+    }
+
+    public Task<T> Delete<T>(string endpoint, ApiServiceType service = ApiServiceType.Backend)
+    {
+        return SendRequest<T>(endpoint, "DELETE", null, service);
+    }
+
+    private async Task<T> SendRequest<T>(
+        string endpoint,
+        string method,
+        object body,
+        ApiServiceType service)
+    {
+        string baseUrl = baseUrls[service];
         string url = $"{baseUrl}{endpoint}";
-        string json = JsonConvert.SerializeObject(body);
 
-        byte[] jsonBytes = Encoding.UTF8.GetBytes(json);
+        string json = body != null ? JsonConvert.SerializeObject(body) : null;
 
-        using (UnityWebRequest request = new UnityWebRequest(url, "POST"))
+        using (UnityWebRequest request = new UnityWebRequest(url, method))
         {
-            request.uploadHandler = new UploadHandlerRaw(jsonBytes);
+            if (body != null)
+            {
+                byte[] jsonBytes = Encoding.UTF8.GetBytes(json);
+                request.uploadHandler = new UploadHandlerRaw(jsonBytes);
+                request.SetRequestHeader("Content-Type", "application/json");
+            }
+
             request.downloadHandler = new DownloadHandlerBuffer();
 
-            request.SetRequestHeader("Content-Type", "application/json");
+            await SendAsync(request);
 
-            return await SendRequest<T>(request);
+            string responseText = request.downloadHandler.text;
+
+            Debug.Log($"[{method}] {url}");
+            Debug.Log($"Response: {responseText}");
+
+            try
+            {
+                return JsonConvert.DeserializeObject<T>(responseText);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"JSON Parse Error: {e.Message}");
+                throw;
+            }
         }
     }
 
-    public async Task<T> Patch<T>(string endpoint, object body)
-    {
-        string url = $"{baseUrl}{endpoint}";
-        string json = JsonConvert.SerializeObject(body);
-
-        byte[] jsonBytes = Encoding.UTF8.GetBytes(json);
-
-        using (UnityWebRequest request = new UnityWebRequest(url, "PATCH"))
-        {
-            request.uploadHandler = new UploadHandlerRaw(jsonBytes);
-            request.downloadHandler = new DownloadHandlerBuffer();
-
-            request.SetRequestHeader("Content-Type", "application/json");
-
-            return await SendRequest<T>(request);
-        }
-    }
-
-    private async Task<T> SendRequest<T>(UnityWebRequest request)
+    private async Task SendAsync(UnityWebRequest request)
     {
         var operation = request.SendWebRequest();
 
@@ -80,22 +111,12 @@ public class ApiClient : MonoBehaviour
 
         if (request.result != UnityWebRequest.Result.Success)
         {
-            Debug.LogError($"API Error: {request.error}");
-            throw new Exception(request.error);
-        }
+            string error = $"HTTP ERROR: {request.error}\n" +
+                           $"Code: {request.responseCode}\n" +
+                           $"Response: {request.downloadHandler?.text}";
 
-        string json = request.downloadHandler.text;
-
-        Debug.Log($"Response: {json}");
-
-        try
-        {
-            return JsonConvert.DeserializeObject<T>(json);
-        }
-        catch (Exception e)
-        {
-            Debug.LogError($"JSON Parse Error: {e.Message}");
-            throw;
+            Debug.LogError(error);
+            throw new Exception(error);
         }
     }
 }

@@ -16,10 +16,12 @@ public class UserItemUI : MonoBehaviour
         this.user = user;
         this.onClick = onClick;
 
-        usernameText.text = user.Username;
+        usernameText.text = user?.Username ?? "Unknown";
 
         button.onClick.RemoveAllListeners();
-        button.onClick.AddListener(() => this.onClick?.Invoke(this.user));
+
+        var capturedUser = user;
+        button.onClick.AddListener(() => onClick?.Invoke(capturedUser));
     }
 
     public void SetSelected(bool selected)
@@ -38,6 +40,6 @@ public class UserItemUI : MonoBehaviour
 
     public int GetUserId()
     {
-        return user.Id;
+        return user != null ? user.Id : -1;
     }
 }

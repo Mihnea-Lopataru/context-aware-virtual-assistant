@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using System;
 
 public class UserCreateUI : MonoBehaviour
 {
@@ -12,7 +13,9 @@ public class UserCreateUI : MonoBehaviour
 
     private Color errorColor = new Color32(239, 68, 68, 255);
     private Color successColor = new Color32(34, 197, 94, 255);
-    
+
+    private bool isLoading = false;
+
     private void Start()
     {
         if (messageText != null)
@@ -21,6 +24,14 @@ public class UserCreateUI : MonoBehaviour
 
     public async void OnCreateUserClicked()
     {
+        if (isLoading) return;
+
+        if (usernameInput == null)
+        {
+            Debug.LogError("Username input not assigned!");
+            return;
+        }
+
         string username = usernameInput.text.Trim();
 
         if (string.IsNullOrEmpty(username))
@@ -29,11 +40,11 @@ public class UserCreateUI : MonoBehaviour
             return;
         }
 
+        isLoading = true;
+
         try
         {
             var user = await UserManager.Instance.CreateUser(username);
-
-            UserManager.Instance.SelectUser(user);
 
             usernameInput.text = "";
 
@@ -41,9 +52,14 @@ public class UserCreateUI : MonoBehaviour
 
             await userListUI.LoadUsers();
         }
-        catch (System.Exception e)
+        catch (Exception e)
         {
+            Debug.LogError($"Create user failed: {e.Message}");
             ShowMessage(ParseError(e.Message), true);
+        }
+        finally
+        {
+            isLoading = false;
         }
     }
 
@@ -58,7 +74,9 @@ public class UserCreateUI : MonoBehaviour
 
     private string ParseError(string rawError)
     {
-        if (rawError.Contains("400"))
+        string lower = rawError.ToLower();
+
+        if (lower.Contains("exists") || lower.Contains("400"))
             return "Username already exists.";
 
         return "Something went wrong.";

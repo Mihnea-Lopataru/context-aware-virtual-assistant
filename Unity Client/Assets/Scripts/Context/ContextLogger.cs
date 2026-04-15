@@ -1,16 +1,27 @@
+using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class ContextLogger : MonoBehaviour
 {
     public static ContextLogger Instance { get; private set; }
 
-    [Header("Player Reference")]
+    [Header("References")]
     [SerializeField] private Transform playerTransform;
 
-    private List<PlayerEventDTO> eventBuffer = new List<PlayerEventDTO>();
+    [Header("Settings")]
+    [SerializeField] private float sendInterval = 5f;
+    [SerializeField] private int maxBatchSize = 20;
 
-    private void Awake()
+    private EventsApi eventsApi;
+    private Coroutine sendCoroutine;
+
+    private readonly List<PlayerEvent> eventBuffer = new();
+
+    private bool isFlushing = false;
+
+    private async void Awake()
     {
         if (Instance != null && Instance != this)
         {
@@ -20,46 +31,139 @@ public class ContextLogger : MonoBehaviour
         }
 
         Instance = this;
+        DontDestroyOnLoad(gameObject);
+
+        await WaitForApiClient();
+
+        if (ApiClient.Instance == null)
+        {
+            Debug.LogError("[ContextLogger] ApiClient not initialized!");
+            return;
+        }
+
+        eventsApi = new EventsApi(ApiClient.Instance);
     }
 
-    public void LogEvent(string eventType, EventContextDTO context)
+    private void Start()
     {
-        if (playerTransform == null)
+        if (sendCoroutine == null)
         {
-            Debug.LogWarning("PlayerTransform not assigned in ContextLogger.");
-            return;
+            sendCoroutine = StartCoroutine(SendLoop());
         }
+    }
 
+    private async Task WaitForApiClient()
+    {
+        while (ApiClient.Instance == null)
+            await Task.Yield();
+    }
+
+    public void LogEvent(string eventType, Dictionary<string, object> context = null)
+    {
         if (SessionManager.Instance == null || !SessionManager.Instance.HasActiveSession)
         {
-            Debug.LogWarning("No active session. Event ignored.");
+            Debug.LogWarning("[ContextLogger] No active session. Event ignored.");
             return;
         }
 
-        int sessionId = SessionManager.Instance.CurrentSessionId;
+        if (playerTransform == null)
+        {
+            Debug.LogWarning("[ContextLogger] PlayerTransform not assigned.");
+            return;
+        }
 
-        var playerState = PlayerStateDTO.FromTransform(playerTransform);
+        var playerState = new PlayerState
+        {
+            position = new Vector3Serializable(playerTransform.position),
+            rotation = new Vector3Serializable(playerTransform.eulerAngles),
+            forward = new Vector3Serializable(playerTransform.forward)
+        };
 
-        var playerEvent = PlayerEventDTO.Create(
-            sessionId,
-            eventType,
-            playerState,
-            context
-        );
+        var playerEvent = new PlayerEvent
+        {
+            event_id = System.Guid.NewGuid().ToString(),
+            session_id = SessionManager.Instance.CurrentSessionId,
+            event_type = eventType,
+            timestamp = System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+            player_state = playerState,
+            context = context
+        };
 
         eventBuffer.Add(playerEvent);
 
-        Debug.Log($"[Event] {eventType} | Success: {context?.Success}");
+        if (eventBuffer.Count >= maxBatchSize && !isFlushing)
+        {
+            _ = FlushEvents();
+        }
+
+        Debug.Log($"[Event] {eventType} | Buffer: {eventBuffer.Count}");
     }
 
-    public List<PlayerEventDTO> ConsumeEvents()
+    public void LogEvent(EventType eventType, Dictionary<string, object> context = null)
     {
+        LogEvent(eventType.ToApiString(), context);
+    }
+
+    private IEnumerator SendLoop()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(sendInterval);
+
+            if (eventBuffer.Count > 0 && !isFlushing)
+            {
+                _ = FlushEvents();
+            }
+        }
+    }
+
+    private async Task FlushEvents()
+    {
+        if (isFlushing)
+            return;
+
         if (eventBuffer.Count == 0)
-            return null;
+            return;
 
-        var copy = new List<PlayerEventDTO>(eventBuffer);
+        if (SessionManager.Instance == null || !SessionManager.Instance.HasActiveSession)
+            return;
+
+        isFlushing = true;
+
+        List<PlayerEvent> batch = null;
+
+        try
+        {
+            var sessionId = SessionManager.Instance.CurrentSessionId;
+
+            batch = new List<PlayerEvent>(eventBuffer);
+            eventBuffer.Clear();
+
+            await eventsApi.SendEvents(sessionId, batch);
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError($"[ContextLogger] Failed to send events: {ex.Message}");
+
+            if (batch != null)
+            {
+                eventBuffer.AddRange(batch);
+            }
+        }
+        finally
+        {
+            isFlushing = false;
+        }
+    }
+
+    private async void OnApplicationQuit()
+    {
+        await FlushEvents();
+    }
+
+    public void Clear()
+    {
         eventBuffer.Clear();
-
-        return copy;
+        Debug.Log("[ContextLogger] Buffer cleared.");
     }
 }

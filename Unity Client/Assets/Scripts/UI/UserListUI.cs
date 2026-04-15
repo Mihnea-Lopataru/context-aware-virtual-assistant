@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -12,7 +13,31 @@ public class UserListUI : MonoBehaviour
 
     private async void Start()
     {
-        await LoadUsers();
+        try
+        {
+            await LoadUsers();
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Failed to load users: {e.Message}");
+        }
+    }
+
+    private void OnEnable()
+    {
+        if (UserManager.Instance != null)
+            UserManager.Instance.OnUserChanged += HandleUserChanged;
+    }
+
+    private void OnDisable()
+    {
+        if (UserManager.Instance != null)
+            UserManager.Instance.OnUserChanged -= HandleUserChanged;
+    }
+
+    private void HandleUserChanged(UserResponse user)
+    {
+        UpdateSelection(user);
     }
 
     public async System.Threading.Tasks.Task LoadUsers()
@@ -65,7 +90,9 @@ public class UserListUI : MonoBehaviour
     {
         foreach (var item in items)
         {
-            bool isSelected = item.GetUserId() == selectedUser.Id;
+            bool isSelected = selectedUser != null &&
+                              item.GetUserId() == selectedUser.Id;
+
             item.SetSelected(isSelected);
         }
     }

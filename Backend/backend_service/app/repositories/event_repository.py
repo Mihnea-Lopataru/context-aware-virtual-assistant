@@ -1,6 +1,6 @@
 from typing import List
-
 from sqlalchemy.orm import Session
+from datetime import datetime, timezone
 
 from app.models.event import Event
 
@@ -8,6 +8,11 @@ from app.models.event import Event
 class EventRepository:
     def __init__(self, db: Session):
         self.db = db
+
+    def _convert_timestamp(self, ms: int | None):
+        if not ms:
+            return None
+        return datetime.fromtimestamp(ms / 1000, tz=timezone.utc)
 
     def create_batch(
         self,
@@ -17,12 +22,14 @@ class EventRepository:
         db_events: List[Event] = []
 
         for e in events:
+            timestamp = self._convert_timestamp(e.get("timestamp"))
+
             db_event = Event(
                 session_id=session_id,
                 event_type=e.get("event_type"),
                 player_state=e.get("player_state"),
                 context_data=e.get("context"),
-                timestamp=e.get("timestamp")
+                timestamp=timestamp or datetime.now(timezone.utc)  # fallback safe
             )
 
             db_events.append(db_event)

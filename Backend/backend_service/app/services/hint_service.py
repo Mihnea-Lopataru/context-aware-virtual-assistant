@@ -43,6 +43,11 @@ class HintService:
 
         except Exception:
             response_text = self._fallback_hint(context)
+            return HintResponse(
+                hint=response_text,
+                confidence=None,
+                hint_type="fallback"
+    )
 
         return HintResponse(
             hint=response_text,
@@ -60,9 +65,5 @@ class HintService:
                 "It looks like you're struggling. Try reconsidering your last action "
                 "and how it relates to the current goal."
             )
-        
-        return HintResponse(
-            hint="Focus on your last action and think about how it influences your progress.",
-            confidence=None,
-            hint_type="fallback"
-        )
+            
+        return "Focus on your last action and think about how it influences your progress."

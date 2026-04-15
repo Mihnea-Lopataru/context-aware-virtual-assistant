@@ -5,7 +5,7 @@ public class UserCurrentUI : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI currentUserText;
 
-    private void Start()
+    private void OnEnable()
     {
         if (UserManager.Instance != null)
         {
@@ -15,7 +15,7 @@ public class UserCurrentUI : MonoBehaviour
         ForceUpdate();
     }
 
-    private void OnDestroy()
+    private void OnDisable()
     {
         if (UserManager.Instance != null)
         {
@@ -31,6 +31,9 @@ public class UserCurrentUI : MonoBehaviour
     private void ForceUpdate()
     {
         var user = UserManager.Instance?.CurrentUser;
+
+        if (currentUserText == null)
+            return;
 
         currentUserText.text = user == null
             ? "No user selected"

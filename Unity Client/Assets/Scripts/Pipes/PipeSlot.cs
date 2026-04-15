@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class PipeSlot : MonoBehaviour, IInteractable
@@ -108,20 +109,20 @@ public class PipeSlot : MonoBehaviour, IInteractable
         if (ContextLogger.Instance == null)
             return;
 
-        var context = new EventContextDTO
+        var context = new Dictionary<string, object>
         {
-            ObjectId = pipe.name,
-            ObjectType = "pipe",
+            { "object_id", pipe.name },
+            { "object_type", "pipe" },
 
-            PipeColor = pipe.Color.ToString(),
-            PipeType = pipe.Type.ToString(),
+            { "pipe_color", pipe.Color.ToString().ToLower() },
+            { "pipe_type", pipe.Type.ToString().ToLower() },
 
-            RequiredColor = requiredColor.ToString(),
-            RequiredType = requiredType.ToString(),
+            { "required_color", requiredColor.ToString().ToLower() },
+            { "required_type", requiredType.ToString().ToLower() },
 
-            Success = isCorrect
+            { "is_correct", isCorrect }
         };
 
-        ContextLogger.Instance.LogEvent("PLACE_PIPE", context);
+        ContextLogger.Instance.LogEvent(EventType.PLACE_OBJECT, context);
     }
 }

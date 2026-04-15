@@ -10,3 +10,11 @@ public enum EventType
     PUZZLE_PROGRESS,
     PUZZLE_ERROR
 }
+
+public static class EventTypeExtensions
+{
+    public static string ToApiString(this EventType type)
+    {
+        return type.ToString().ToLower();
+    }
+}
