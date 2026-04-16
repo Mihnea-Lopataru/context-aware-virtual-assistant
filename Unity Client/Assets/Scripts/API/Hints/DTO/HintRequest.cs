@@ -8,7 +8,7 @@ public class HintRequest
 
     public string message;
 
-    public Dictionary<string, object> knowledge;
+    public object knowledge;
 
     public string provider;
 }

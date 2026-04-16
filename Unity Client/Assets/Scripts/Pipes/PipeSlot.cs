@@ -125,4 +125,14 @@ public class PipeSlot : MonoBehaviour, IInteractable
 
         ContextLogger.Instance.LogEvent(EventType.PLACE_OBJECT, context);
     }
+
+    public string RequiredTypeString()
+    {
+        return requiredType.ToString().ToLower();
+    }
+
+    public string RequiredColorString()
+    {
+        return requiredColor.ToString().ToLower();
+    }
 }

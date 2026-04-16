@@ -18,6 +18,8 @@ public class SessionManager : MonoBehaviour
     [SerializeField] private float heartbeatInterval = 15f;
 
     private Coroutine heartbeatCoroutine;
+    private string currentScene;
+    private string currentObjective;
 
     private async void Awake()
     {
@@ -53,6 +55,9 @@ public class SessionManager : MonoBehaviour
             Debug.LogError("No user selected. Cannot start session.");
             return null;
         }
+
+        this.currentScene = currentScene;
+        this.currentObjective = currentObjective;
 
         CurrentSession = await sessionApi.StartSession(
             user.Id,
@@ -122,7 +127,12 @@ public class SessionManager : MonoBehaviour
 
         try
         {
-            await sessionApi.UpdateSession(CurrentSessionId);
+            await sessionApi.UpdateSession(
+                CurrentSessionId,
+                currentScene,
+                currentObjective
+            );
+
             Debug.Log("[Session] Heartbeat sent.");
         }
         catch (Exception ex)

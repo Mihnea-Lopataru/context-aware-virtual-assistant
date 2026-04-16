@@ -11,7 +11,7 @@ public class HintApi
         this.client = client;
     }
 
-    public async Task<HintResponse> GenerateHint(int sessionId, string message, Dictionary<string, object> knowledge)
+    public async Task<HintResponse> GenerateHint(int sessionId, string message, object knowledge)
     {
         string provider = AIConfig.Instance != null
             ? AIConfig.Instance.GetProviderString()
@@ -21,7 +21,7 @@ public class HintApi
         {
             session_id = sessionId,
             message = message,
-            knowledge = knowledge ?? new Dictionary<string, object>(),
+            knowledge = knowledge,
             provider = provider
         };
 

@@ -1,5 +1,4 @@
 from typing import Any
-
 from app.models.event import Event
 
 
@@ -8,62 +7,59 @@ class ContextBuilder:
         if not events:
             return {
                 "user_message": user_message,
-                "recent_event_count": 0,
-                "recent_failures": 0,
-                "recent_successes": 0,
-                "last_event_type": None,
-                "last_event_context": None,
-                "struggling": False,
                 "summary": "No recent gameplay events available."
             }
+
+        last_event = events[0]
 
         recent_failures = 0
         recent_successes = 0
 
-        last_event = events[0]
+        aggregated_context = {}
+        recent_events_summary = []
 
         for event in events:
             context = event.context_data or {}
-
-            success = context.get("success")
+            
+            success = context.get("is_correct")
 
             if success is True:
                 recent_successes += 1
             elif success is False:
                 recent_failures += 1
 
+            for key, value in context.items():
+                if key not in aggregated_context:
+                    aggregated_context[key] = value
+
+            recent_events_summary.append({
+                "type": event.event_type,
+                "context": context
+            })
+
         struggling = recent_failures >= 3 and recent_failures > recent_successes
 
         return {
             "user_message": user_message,
-            "recent_event_count": len(events),
+
             "recent_failures": recent_failures,
             "recent_successes": recent_successes,
+            "struggling": struggling,
+
             "last_event_type": last_event.event_type,
             "last_event_context": last_event.context_data,
-            "struggling": struggling,
+
+            "aggregated_context": aggregated_context,
+            "recent_events": recent_events_summary[:5],
+
             "summary": self._build_summary(
-                recent_failures,
-                recent_successes,
                 last_event.event_type,
                 struggling
             )
         }
 
-    def _build_summary(
-        self,
-        failures: int,
-        successes: int,
-        last_event_type: str,
-        struggling: bool
-    ) -> str:
+    def _build_summary(self, last_event_type: str, struggling: bool) -> str:
         if struggling:
-            return (
-                f"The player has {failures} recent failed attempts and may be struggling. "
-                f"The last action was {last_event_type}."
-            )
+            return f"The player seems to be struggling. Last action: {last_event_type}."
 
-        return (
-            f"The player has {successes} successful actions and {failures} failed attempts. "
-            f"The last action was {last_event_type}."
-        )
+        return f"The last action performed was {last_event_type}."

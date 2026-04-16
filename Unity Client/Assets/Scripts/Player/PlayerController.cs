@@ -14,6 +14,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float mouseSensitivity = 1.5f;
     [SerializeField] private float maxLookAngle = 80f;
 
+    public bool InputEnabled { get; set; } = true;
+
     private CharacterController controller;
     private float yVelocity;
     private float pitch = 0f;
@@ -32,6 +34,9 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        if (!InputEnabled)
+            return;
+            
         HandleMouseLook();
         HandleMovement();
     }

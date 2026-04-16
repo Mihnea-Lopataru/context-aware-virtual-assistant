@@ -21,6 +21,8 @@ public class ContextLogger : MonoBehaviour
 
     private bool isFlushing = false;
 
+    private Pipe currentHeldPipe;
+
     private async void Awake()
     {
         if (Instance != null && Instance != this)
@@ -58,6 +60,16 @@ public class ContextLogger : MonoBehaviour
             await Task.Yield();
     }
 
+    public void SetHeldPipe(Pipe pipe)
+    {
+        currentHeldPipe = pipe;
+    }
+
+    public void ClearHeldPipe()
+    {
+        currentHeldPipe = null;
+    }
+
     public void LogEvent(string eventType, Dictionary<string, object> context = null)
     {
         if (SessionManager.Instance == null || !SessionManager.Instance.HasActiveSession)
@@ -70,6 +82,16 @@ public class ContextLogger : MonoBehaviour
         {
             Debug.LogWarning("[ContextLogger] PlayerTransform not assigned.");
             return;
+        }
+
+        if (context == null)
+            context = new Dictionary<string, object>();
+
+        if (currentHeldPipe != null)
+        {
+            context["held_object_type"] = "pipe";
+            context["held_pipe_type"] = currentHeldPipe.Type.ToString().ToLower();
+            context["held_pipe_color"] = currentHeldPipe.Color.ToString().ToLower();
         }
 
         var playerState = new PlayerState
@@ -91,12 +113,21 @@ public class ContextLogger : MonoBehaviour
 
         eventBuffer.Add(playerEvent);
 
-        if (eventBuffer.Count >= maxBatchSize && !isFlushing)
+        if (eventType == EventType.PICK_OBJECT.ToApiString() ||
+            eventType == EventType.PLACE_OBJECT.ToApiString() ||
+            eventType == EventType.DROP_OBJECT.ToApiString())
+        {
+            _ = FlushEvents();
+        }
+        else if (eventBuffer.Count >= maxBatchSize && !isFlushing)
         {
             _ = FlushEvents();
         }
 
-        Debug.Log($"[Event] {eventType} | Buffer: {eventBuffer.Count}");
+        if (eventType != EventType.INTERACT_ATTEMPT.ToApiString())
+        {
+            Debug.Log($"[Event] {eventType} | Buffer: {eventBuffer.Count}");
+        }
     }
 
     public void LogEvent(EventType eventType, Dictionary<string, object> context = null)
@@ -164,6 +195,8 @@ public class ContextLogger : MonoBehaviour
     public void Clear()
     {
         eventBuffer.Clear();
+        currentHeldPipe = null;
+
         Debug.Log("[ContextLogger] Buffer cleared.");
     }
 }

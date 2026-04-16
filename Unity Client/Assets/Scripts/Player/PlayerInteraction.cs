@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class PlayerInteraction : MonoBehaviour
 {
@@ -18,11 +19,15 @@ public class PlayerInteraction : MonoBehaviour
     private Pipe heldPipe;
     private bool isAnimating = false;
 
+    private GameObject lastLookedObject;
+
     public Pipe HeldPipe => heldPipe;
+
+    public bool InputEnabled { get; set; } = true;
 
     private void Update()
     {
-        if (isAnimating)
+        if (!InputEnabled || isAnimating)
             return;
 
         DetectTarget();
@@ -45,15 +50,55 @@ public class PlayerInteraction : MonoBehaviour
         if (Physics.Raycast(ray, out RaycastHit hit, interactDistance, interactLayer))
         {
             currentTarget = hit.collider.GetComponentInParent<IInteractable>();
+
+            GameObject obj = hit.collider.gameObject;
+
+            if (obj != lastLookedObject)
+            {
+                lastLookedObject = obj;
+                LogLookEvent(obj);
+            }
         }
         else
         {
             currentTarget = null;
+            lastLookedObject = null;
         }
+    }
+
+    private void LogLookEvent(GameObject obj)
+    {
+        if (ContextLogger.Instance == null)
+            return;
+
+        var context = new Dictionary<string, object>
+        {
+            { "object_name", obj.name }
+        };
+
+        var pipe = obj.GetComponent<Pipe>();
+        if (pipe != null)
+        {
+            context["object_type"] = "pipe";
+            context["pipe_type"] = pipe.Type.ToString().ToLower();
+            context["pipe_color"] = pipe.Color.ToString().ToLower();
+        }
+
+        var slot = obj.GetComponent<PipeSlot>();
+        if (slot != null)
+        {
+            context["object_type"] = "pipe_slot";
+            context["required_type"] = slot.RequiredTypeString();
+            context["required_color"] = slot.RequiredColorString();
+        }
+
+        ContextLogger.Instance.LogEvent(EventType.INTERACT_ATTEMPT, context);
     }
 
     private void HandleInteraction()
     {
+        ContextLogger.Instance?.LogEvent(EventType.INTERACT_ATTEMPT, null);
+
         if (heldPipe == null)
         {
             currentTarget?.Interact(this);
@@ -81,6 +126,15 @@ public class PlayerInteraction : MonoBehaviour
 
         heldPipe = pipe;
 
+        ContextLogger.Instance?.SetHeldPipe(pipe);
+
+        ContextLogger.Instance?.LogEvent(EventType.PICK_OBJECT, new Dictionary<string, object>
+        {
+            { "object_type", "pipe" },
+            { "pipe_type", pipe.Type.ToString().ToLower() },
+            { "pipe_color", pipe.Color.ToString().ToLower() }
+        });
+
         pipe.DetachFromCurrentSlot();
         pipe.SetHeldState(true);
 
@@ -93,6 +147,9 @@ public class PlayerInteraction : MonoBehaviour
             return;
 
         Pipe pipeToPlace = heldPipe;
+
+        ContextLogger.Instance?.ClearHeldPipe();
+
         heldPipe = null;
 
         StartCoroutine(AnimatePipeToSlot(pipeToPlace, slot));
@@ -104,6 +161,16 @@ public class PlayerInteraction : MonoBehaviour
             return;
 
         Pipe pipeToReturn = heldPipe;
+
+        ContextLogger.Instance?.LogEvent(EventType.DROP_OBJECT, new Dictionary<string, object>
+        {
+            { "object_type", "pipe" },
+            { "pipe_type", pipeToReturn.Type.ToString().ToLower() },
+            { "pipe_color", pipeToReturn.Color.ToString().ToLower() }
+        });
+
+        ContextLogger.Instance?.ClearHeldPipe();
+
         heldPipe = null;
 
         pipeToReturn.DetachFromCurrentSlot();
