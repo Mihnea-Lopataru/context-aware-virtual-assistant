@@ -65,8 +65,6 @@ public class SessionManager : MonoBehaviour
             currentObjective
         );
 
-        Debug.Log($"[Session] Started: {CurrentSession.id}");
-
         StartHeartbeat();
 
         return CurrentSession;
@@ -81,7 +79,6 @@ public class SessionManager : MonoBehaviour
         {
             await sessionApi.EndSession(CurrentSession.id);
             ContextLogger.Instance?.Clear();
-            Debug.Log($"[Session] Ended: {CurrentSession.id}");
         }
         catch (Exception e)
         {
@@ -132,8 +129,6 @@ public class SessionManager : MonoBehaviour
                 currentScene,
                 currentObjective
             );
-
-            Debug.Log("[Session] Heartbeat sent.");
         }
         catch (Exception ex)
         {

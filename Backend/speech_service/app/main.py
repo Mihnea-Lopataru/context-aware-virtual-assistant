@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from app.routes import speech_to_text
+from app.routes import text_to_speech
 
 app = FastAPI(title="Speech Service")
 
@@ -17,3 +18,4 @@ def health_check():
 
 
 app.include_router(speech_to_text.router, prefix="/speech-to-text")
+app.include_router(text_to_speech.router, prefix="/text-to-speech")

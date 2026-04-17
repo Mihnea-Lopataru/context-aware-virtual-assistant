@@ -7,24 +7,7 @@ from app.speech.utils.audio_utils import convert_to_wav
 
 
 class GoogleSTTProvider(STTProvider):
-    """
-    Google Cloud Speech-to-Text provider implementation.
-
-    This provider:
-    - Normalizes audio to WAV PCM (16kHz mono)
-    - Sends audio to Google Cloud STT API
-    - Returns transcription results
-
-    Notes:
-    - Requires GOOGLE_APPLICATION_CREDENTIALS to be set
-    - Uses general-purpose model for fair comparison with Vosk
-    """
-
     def __init__(self):
-        """
-        Initializes Google Speech client.
-        """
-
         try:
             self.client = speech.SpeechClient()
         except Exception as e:
@@ -39,20 +22,6 @@ class GoogleSTTProvider(STTProvider):
         )
 
     def transcribe(self, audio_bytes: bytes) -> str:
-        """
-        Transcribes audio using Google Cloud Speech-to-Text.
-
-        Args:
-            audio_bytes (bytes): Raw audio input
-
-        Returns:
-            str: Transcribed text
-
-        Raises:
-            ValueError: If input is invalid
-            RuntimeError: If transcription fails
-        """
-
         if not audio_bytes:
             raise ValueError("Empty audio input received.")
 

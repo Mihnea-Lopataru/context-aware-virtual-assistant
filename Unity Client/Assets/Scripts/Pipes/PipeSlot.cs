@@ -56,10 +56,6 @@ public class PipeSlot : MonoBehaviour, IInteractable
         bool isCorrect = IsCorrectPipe(pipe);
         pipe.SetPlacedCorrectly(isCorrect);
 
-        Debug.Log(
-            $"[PipeSlot] Placed {pipe.Type} ({pipe.Color}) in slot ({requiredType}, {requiredColor}) -> {(isCorrect ? "CORRECT" : "WRONG")}"
-        );
-
         LogPlacementEvent(pipe, isCorrect);
     }
 
@@ -86,7 +82,6 @@ public class PipeSlot : MonoBehaviour, IInteractable
 
         if (knowledge == null)
         {
-            Debug.LogWarning("[Knowledge] PuzzleKnowledge not loaded.");
             return;
         }
 

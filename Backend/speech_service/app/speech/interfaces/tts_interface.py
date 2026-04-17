@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class STTProvider(ABC):
+class TTSProvider(ABC):
     @abstractmethod
-    def transcribe(self, audio_bytes: bytes) -> str:
+    def synthesize(self, text: str) -> bytes:
         raise NotImplementedError

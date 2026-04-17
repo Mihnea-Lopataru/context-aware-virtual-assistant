@@ -47,6 +47,6 @@
     "trying to use all available pipes",
     "repeating the same incorrect placement"
   ],
-
+  
   "goal": "fill all slots with the correct pipe type and color"
 }

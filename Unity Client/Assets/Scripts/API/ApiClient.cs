@@ -41,6 +41,17 @@ public class ApiClient : MonoBehaviour
         }
     }
 
+    public string GetBaseUrl(ApiServiceType service)
+    {
+        if (baseUrls == null)
+            throw new Exception("ApiClient not initialized.");
+
+        if (!baseUrls.TryGetValue(service, out var url))
+            throw new Exception($"No base URL configured for service: {service}");
+
+        return url;
+    }
+
     public Task<T> Get<T>(string endpoint, ApiServiceType service = ApiServiceType.Backend)
     {
         return SendRequest<T>(endpoint, "GET", null, service);
@@ -86,9 +97,6 @@ public class ApiClient : MonoBehaviour
             await SendAsync(request);
 
             string responseText = request.downloadHandler.text;
-
-            Debug.Log($"[{method}] {url}");
-            Debug.Log($"Response: {responseText}");
 
             try
             {

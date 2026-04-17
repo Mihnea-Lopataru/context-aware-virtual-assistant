@@ -20,22 +20,29 @@ public class ChatInputUI : MonoBehaviour
     private bool isChatActive = false;
     private bool isRequestInProgress = false;
 
-    private HintServiceUnity hintService;
-
     private async void Start()
     {
         chatInputArea.SetActive(false);
+        loadingIndicator?.SetActive(false);
 
-        if (loadingIndicator != null)
-            loadingIndicator.SetActive(false);
+        await WaitForChatManager();
 
-        await WaitForApiClient();
-        hintService = new HintServiceUnity(ApiClient.Instance);
+        ChatManager.Instance.OnProcessingStarted += HandleProcessingStarted;
+        ChatManager.Instance.OnResponseReady += HandleResponse;
     }
 
-    private async Task WaitForApiClient()
+    private void OnDestroy()
     {
-        while (ApiClient.Instance == null)
+        if (ChatManager.Instance != null)
+        {
+            ChatManager.Instance.OnProcessingStarted -= HandleProcessingStarted;
+            ChatManager.Instance.OnResponseReady -= HandleResponse;
+        }
+    }
+
+    private async Task WaitForChatManager()
+    {
+        while (ChatManager.Instance == null)
             await Task.Yield();
     }
 
@@ -49,9 +56,7 @@ public class ChatInputUI : MonoBehaviour
     private void HandleOpenChat()
     {
         if (Input.GetKeyDown(KeyCode.T) && !isChatActive)
-        {
             OpenChat();
-        }
     }
 
     private void HandleSubmit()
@@ -59,17 +64,13 @@ public class ChatInputUI : MonoBehaviour
         if (!isChatActive) return;
 
         if (Input.GetKeyDown(KeyCode.Return))
-        {
             SubmitMessage();
-        }
     }
 
     private void HandleCloseWithEscape()
     {
         if (isChatActive && Input.GetKeyDown(KeyCode.Escape))
-        {
             CancelChat();
-        }
     }
 
     private void OpenChat()
@@ -78,27 +79,20 @@ public class ChatInputUI : MonoBehaviour
 
         chatInputArea.SetActive(true);
 
-        if (chatResultUI != null)
-            chatResultUI.Hide();
-
-        if (loadingIndicator != null)
-            loadingIndicator.SetActive(false);
+        chatResultUI?.Hide();
+        loadingIndicator?.SetActive(false);
 
         inputField.text = "";
         inputField.ActivateInputField();
         inputField.Select();
 
-        inputField.caretPosition = inputField.text.Length;
-        inputField.MoveTextEnd(false);
-
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
-        if (playerController != null)
-            playerController.InputEnabled = false;
+        playerController.InputEnabled = false;
+        playerInteraction.InputEnabled = false;
 
-        if (playerInteraction != null)
-            playerInteraction.InputEnabled = false;
+        SpeechManager.Instance?.Stop();
     }
 
     private void CloseChat()
@@ -106,17 +100,13 @@ public class ChatInputUI : MonoBehaviour
         isChatActive = false;
 
         chatInputArea.SetActive(false);
-
         inputField.DeactivateInputField();
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
-        if (playerController != null)
-            playerController.InputEnabled = true;
-
-        if (playerInteraction != null)
-            playerInteraction.InputEnabled = true;
+        playerController.InputEnabled = true;
+        playerInteraction.InputEnabled = true;
     }
 
     private void CancelChat()
@@ -139,44 +129,64 @@ public class ChatInputUI : MonoBehaviour
 
         CloseChat();
 
-        if (loadingIndicator != null)
-            loadingIndicator.SetActive(true);
-
         try
         {
-            var response = await hintService.RequestHint(message);
-
-            if (response != null)
-            {
-                StartCoroutine(ShowResultCoroutine(response.hint));
-            }
+            await ChatManager.Instance.ProcessMessage(message);
         }
         catch (System.Exception e)
         {
-            Debug.LogError("Hint request failed: " + e.Message);
-
-            StartCoroutine(ShowResultCoroutine("Something went wrong. Try again."));
+            Debug.LogError("Chat error: " + e.Message);
+            HandleResponse("Something went wrong.", null);
         }
         finally
         {
-            if (loadingIndicator != null)
-                loadingIndicator.SetActive(false);
-
             isRequestInProgress = false;
         }
     }
 
-    private IEnumerator ShowResultCoroutine(string message)
+    public async Task SendMessageFromVoice(string message)
+    {
+        if (isRequestInProgress)
+            return;
+
+        isRequestInProgress = true;
+
+        try
+        {
+            await ChatManager.Instance.ProcessMessage(message);
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError("Voice message error: " + e.Message);
+            HandleResponse("Something went wrong.", null);
+        }
+        finally
+        {
+            isRequestInProgress = false;
+        }
+    }
+
+    private void HandleProcessingStarted()
+    {
+        loadingIndicator?.SetActive(true);
+    }
+
+    private void HandleResponse(string message, AudioClip clip)
+    {
+        StartCoroutine(ShowResultAndPlayAudio(message, clip));
+    }
+
+    private IEnumerator ShowResultAndPlayAudio(string message, AudioClip clip)
     {
         yield return null;
 
-        if (chatResultUI != null)
+        loadingIndicator?.SetActive(false);
+
+        chatResultUI?.ShowResult(message);
+
+        if (clip != null)
         {
-            chatResultUI.ShowResult(message);
-        }
-        else
-        {
-            Debug.LogError("chatResultUI is NULL!");
+            SpeechManager.Instance?.Play(clip);
         }
     }
 }

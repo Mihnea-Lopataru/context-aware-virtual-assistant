@@ -14,27 +14,7 @@ MODEL_PATH = os.path.join("data", "models", "vosk-model-small-en-us-0.15")
 _model: Optional[Model] = Model(MODEL_PATH)
 
 class VoskSTTProvider(STTProvider):
-    """
-    Vosk-based implementation of the STTProvider interface.
-
-    This provider performs offline speech recognition using the Vosk model.
-    """
-
     def transcribe(self, audio_bytes: bytes) -> str:
-        """
-        Transcribes audio input into text using Vosk.
-
-        Args:
-            audio_bytes (bytes): Raw audio file content
-
-        Returns:
-            str: Transcribed text
-
-        Raises:
-            ValueError: If input audio is invalid
-            RuntimeError: If transcription fails
-        """
-
         if not audio_bytes:
             raise ValueError("Empty audio input received.")
 

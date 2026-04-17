@@ -58,7 +58,7 @@ services:
       - ./speech_service/secrets:/app/secrets
 
     environment:
-      - GOOGLE_APPLICATION_CREDENTIALS=/app/secrets/virtual-ai-assistant-492716-cadc67c3a151.json
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/secrets/virtual-ai-assistant.json
 
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/health"]

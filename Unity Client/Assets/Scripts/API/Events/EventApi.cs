@@ -28,8 +28,6 @@ public class EventsApi
                 "/events",
                 request
             );
-
-            Debug.Log($"[EventsApi] Sent {events.Count} events.");
         }
         catch (System.Exception ex)
         {

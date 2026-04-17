@@ -123,11 +123,6 @@ public class ContextLogger : MonoBehaviour
         {
             _ = FlushEvents();
         }
-
-        if (eventType != EventType.INTERACT_ATTEMPT.ToApiString())
-        {
-            Debug.Log($"[Event] {eventType} | Buffer: {eventBuffer.Count}");
-        }
     }
 
     public void LogEvent(EventType eventType, Dictionary<string, object> context = null)
@@ -196,7 +191,5 @@ public class ContextLogger : MonoBehaviour
     {
         eventBuffer.Clear();
         currentHeldPipe = null;
-
-        Debug.Log("[ContextLogger] Buffer cleared.");
     }
 }

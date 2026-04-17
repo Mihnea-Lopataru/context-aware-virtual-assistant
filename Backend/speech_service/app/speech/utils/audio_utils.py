@@ -20,26 +20,6 @@ else:
 
 
 def convert_to_wav(audio_bytes: bytes) -> bytes:
-    """
-    Converts an input audio file to a normalized WAV format compatible with the Vosk STT engine.
-
-    The function:
-    1. Loads the input audio from raw bytes
-    2. Resamples to 16kHz
-    3. Converts to mono
-    4. Exports as WAV PCM
-
-    Args:
-        audio_bytes (bytes): Raw audio content
-
-    Returns:
-        bytes: WAV PCM (16kHz mono)
-
-    Raises:
-        ValueError: If input is empty
-        RuntimeError: If conversion fails
-    """
-
     if not audio_bytes:
         raise ValueError("Empty audio input received.")
 

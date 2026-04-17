@@ -10,7 +10,6 @@ public class PuzzleKnowledgeLoader : MonoBehaviour
     {
         if (Instance != null)
         {
-            Debug.LogWarning("Multiple PuzzleKnowledgeLoader instances detected!");
             return;
         }
 
@@ -34,7 +33,5 @@ public class PuzzleKnowledgeLoader : MonoBehaviour
             Debug.LogError("Failed to parse puzzle knowledge JSON!");
             return;
         }
-
-        Debug.Log("Puzzle knowledge loaded successfully.");
     }
 }

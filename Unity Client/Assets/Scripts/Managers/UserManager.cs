@@ -45,8 +45,6 @@ public class UserManager : MonoBehaviour
                 Id = PlayerPrefs.GetInt(USER_ID_KEY),
                 Username = PlayerPrefs.GetString(USERNAME_KEY)
             };
-
-            Debug.Log($"Loaded user from prefs: {CurrentUser.Username}");
         }
     }
 
@@ -57,8 +55,6 @@ public class UserManager : MonoBehaviour
         PlayerPrefs.Save();
 
         SetCurrentUser(user);
-
-        Debug.Log($"Saved user: {user.Username}");
     }
 
     private void ClearUser()
@@ -67,8 +63,6 @@ public class UserManager : MonoBehaviour
         PlayerPrefs.DeleteKey(USERNAME_KEY);
 
         SetCurrentUser(null);
-
-        Debug.Log("User cleared.");
     }
 
     private void SetCurrentUser(UserResponse user)
@@ -88,7 +82,6 @@ public class UserManager : MonoBehaviour
 
             if (user == null)
             {
-                Debug.Log("Saved user not found. Clearing...");
                 ClearUser();
             }
             else
@@ -98,7 +91,6 @@ public class UserManager : MonoBehaviour
         }
         catch
         {
-            Debug.Log("Saved user invalid. Clearing...");
             ClearUser();
         }
     }

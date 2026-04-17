@@ -8,7 +8,7 @@ router = APIRouter(
 
 
 @router.post(
-    "/",
+    "",
     summary="Convert audio to text",
     description=(
         "Receives an audio file and returns the transcribed text using the selected STT provider."
@@ -19,10 +19,6 @@ async def speech_to_text(
     file: UploadFile = File(...),
     provider: str = Query("vosk", description="STT provider to use (e.g., vosk, google)")
 ):
-    """
-    Endpoint for speech-to-text conversion with selectable provider.
-    """
-
     if not file:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
