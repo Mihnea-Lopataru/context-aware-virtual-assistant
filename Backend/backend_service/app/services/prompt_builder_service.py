@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 
 class PromptBuilder:
@@ -7,7 +7,8 @@ class PromptBuilder:
     def build(
         self,
         context: Dict[str, Any],
-        knowledge: Dict[str, Any]
+        knowledge: Dict[str, Any],
+        messages: List[Dict[str, str]]
     ) -> str:
 
         knowledge_str = self._format_json(knowledge)
@@ -16,6 +17,9 @@ class PromptBuilder:
 
         aggregated = self._safe_json(context.get("aggregated_context"))
         recent_events = self._safe_json(context.get("recent_events"))
+        messages_str = self._format_messages(messages)
+
+        scene_state = self._safe_json(context.get("scene_state"))
 
         return f"""
 You are a friendly and intelligent assistant helping a player in an interactive environment.
@@ -29,21 +33,62 @@ CORE BEHAVIOR
 - Do not sound robotic or overly technical.
 
 =====================
-WHEN TO HELP WITH THE PUZZLE
+CONVERSATION CONTINUITY
 =====================
 
-- If the user asks for help → provide a hint.
-- If the user seems confused or stuck → guide them gently.
-- If the user is just chatting → respond normally, do NOT force hints.
+- This is an ongoing conversation.
+- Use previous messages to maintain context.
+- Do NOT restart explanations from scratch.
+- If the user refers to something previously discussed, continue naturally.
+
+=====================
+FOLLOW-UP DETECTION
+=====================
+
+- If the user message is short, vague, or refers to something like "this", "that", "it":
+  → treat it as a continuation of the previous message.
+
+- Use recent conversation to understand what the user refers to.
+- Do NOT reinterpret it as a completely new question.
+
+=====================
+TONE ADAPTATION
+=====================
+
+- If the player is struggling:
+  → be more direct and guiding
+  → reduce ambiguity
+
+- If the player is not struggling:
+  → keep hints subtle and minimal
+
+- If the user is just chatting:
+  → respond casually and naturally
+
+=====================
+VALIDATION OF PLAYER ACTIONS
+=====================
+
+- If the player's last action is correct:
+  → clearly confirm it (e.g., "Yes, that was correct.")
+  → encourage them to continue
+
+- If the player asks for confirmation:
+  → respond clearly with yes or no
+  → do NOT say "maybe", "it seems", or "you might want to check"
+
+- If the action is incorrect:
+  → explain what might be wrong
+  → guide without giving the full solution
 
 =====================
 HOW TO GIVE HINTS
 =====================
 
 - Never provide the full solution.
-- Avoid exact placements or instructions.
-- Focus on what the player might be misunderstanding.
-- Use recent actions when relevant.
+- Avoid exact placements or explicit instructions.
+- Focus on what the player might misunderstand.
+- Use recent actions and conversation.
 
 =====================
 ENVIRONMENT KNOWLEDGE
@@ -52,10 +97,22 @@ ENVIRONMENT KNOWLEDGE
 {knowledge_str}
 
 =====================
+RECENT CONVERSATION
+=====================
+
+{messages_str}
+
+=====================
 PLAYER CONTEXT
 =====================
 
 {context_str}
+
+=====================
+SCENE STATE
+=====================
+
+{scene_state}
 
 =====================
 ADDITIONAL CONTEXT
@@ -71,10 +128,12 @@ Recent events:
 REASONING GUIDELINES
 =====================
 
-- Use context only if it helps answer the user.
-- Prioritize the latest actions.
-- If the player is struggling → be slightly more direct.
-- Otherwise → stay subtle.
+- Prioritize recent actions and conversation.
+- Combine gameplay context with conversation history.
+- If struggling:
+  → be more explicit and step-by-step
+- Otherwise:
+  → stay subtle
 
 =====================
 USER INPUT
@@ -86,7 +145,7 @@ USER INPUT
 FINAL ANSWER
 =====================
 
-Respond like you are talking directly to the player.
+Respond naturally, as if you are continuing the conversation with the player.
 """.strip()
 
     def _format_json(self, data: Dict[str, Any]) -> str:
@@ -122,3 +181,15 @@ Summary:
             return json.dumps(data or {}, indent=2)
         except Exception:
             return "Invalid data"
+
+    def _format_messages(self, messages: List[Dict[str, str]]) -> str:
+        if not messages:
+            return "No previous conversation."
+
+        lines = []
+        for msg in messages:
+            role = msg.get("role", "unknown").capitalize()
+            content = msg.get("content", "")
+            lines.append(f"{role}: {content}")
+
+        return "\n".join(lines)

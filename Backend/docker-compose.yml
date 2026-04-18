@@ -23,6 +23,9 @@ services:
       - OLLAMA_BASE_URL=${OLLAMA_BASE_URL}
       - OLLAMA_MODEL=llama3.1:8b
 
+      - OPENAI_API_KEY_PATH=/app/secrets/open-ai.txt
+      - OPENAI_MODEL=gpt-4o-mini
+
     depends_on:
       postgres:
         condition: service_healthy

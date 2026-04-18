@@ -12,6 +12,7 @@ from app.models.db.base import Base
 if TYPE_CHECKING:
     from app.models.user import User
     from app.models.event import Event
+    from app.models.message import Message
 
 
 class SessionStatus(str, Enum):
@@ -21,6 +22,7 @@ class SessionStatus(str, Enum):
 
 
 class Session(Base):
+    
     __tablename__ = "sessions"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
@@ -38,7 +40,15 @@ class Session(Base):
     events: Mapped[List["Event"]] = relationship(
         "Event",
         back_populates="session",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
+
+    messages: Mapped[List["Message"]] = relationship(
+        "Message",
+        back_populates="session",
+        cascade="all, delete-orphan",
+        passive_deletes=True
     )
 
     status: Mapped[SessionStatus] = mapped_column(
@@ -66,7 +76,6 @@ class Session(Base):
         nullable=True
     )
 
-    # ⚠️ OPTIONAL (poți elimina complet dacă vrei backend 100% generic)
     current_scene: Mapped[str | None] = mapped_column(
         String(100),
         nullable=True

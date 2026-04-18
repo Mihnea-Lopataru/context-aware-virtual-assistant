@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 
 
 class Event(Base):
+    
     __tablename__ = "events"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
@@ -47,11 +48,7 @@ class Event(Base):
         nullable=True
     )
 
-    # 🔥 FIX IMPORTANT
-    session: Mapped["Session"] = relationship(
-        "Session",
-        back_populates="events"
-    )
+    session: Mapped["Session"] = relationship("Session", back_populates="events")
 
     __table_args__ = (
         Index("ix_events_session_timestamp", "session_id", "timestamp"),

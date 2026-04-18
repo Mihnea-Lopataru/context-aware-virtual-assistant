@@ -1,5 +1,6 @@
 public enum EventType
 {
+    LOOK_AT,
     INTERACT_ATTEMPT,
     PICK_OBJECT,
     PLACE_OBJECT,

@@ -92,7 +92,7 @@ public class PlayerInteraction : MonoBehaviour
             context["required_color"] = slot.RequiredColorString();
         }
 
-        ContextLogger.Instance.LogEvent(EventType.INTERACT_ATTEMPT, context);
+        ContextLogger.Instance.LogEvent(EventType.LOOK_AT, context);
     }
 
     private void HandleInteraction()

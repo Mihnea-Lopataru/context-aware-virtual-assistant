@@ -7,9 +7,6 @@ from app.models.session import SessionStatus
 
 
 class SessionBase(BaseModel):
-    """
-    Base session metadata.
-    """
 
     current_scene: Optional[str] = Field(
         default=None,
@@ -23,17 +20,11 @@ class SessionBase(BaseModel):
 
 
 class SessionCreate(SessionBase):
-    """
-    Payload for starting a session.
-    """
 
     user_id: int
 
 
 class SessionUpdate(BaseModel):
-    """
-    Payload for updating session metadata.
-    """
 
     current_scene: Optional[str] = Field(
         default=None,
@@ -47,9 +38,6 @@ class SessionUpdate(BaseModel):
 
 
 class SessionResponse(SessionBase):
-    """
-    Session data returned to client.
-    """
 
     id: int
     user_id: int

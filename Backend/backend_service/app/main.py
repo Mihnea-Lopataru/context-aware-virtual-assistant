@@ -9,6 +9,7 @@ from app.models.db.base import Base
 from app.models import user
 from app.models import session
 from app.models import event
+from app.models import message
 
 # =========================
 # IMPORT ROUTES

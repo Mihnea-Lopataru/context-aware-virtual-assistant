@@ -6,9 +6,6 @@ from app.llm.base_provider import BaseLLMProvider
 
 
 class LLMClient:
-    """
-    Generic LLM client supporting multiple providers.
-    """
 
     def __init__(self, provider_name: str = "ollama"):
         self.provider = self._resolve_provider(provider_name)

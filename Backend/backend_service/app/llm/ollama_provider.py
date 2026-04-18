@@ -7,9 +7,6 @@ from app.llm.base_provider import BaseLLMProvider
 logger = logging.getLogger(__name__)
 
 class OllamaProvider(BaseLLMProvider):
-    """
-    Ollama LLM provider.
-    """
 
     def __init__(self):
         self.base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")

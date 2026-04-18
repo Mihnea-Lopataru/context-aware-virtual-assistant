@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 from sqlalchemy import String, DateTime, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -13,10 +13,7 @@ if TYPE_CHECKING:
 
 
 class User(Base):
-    """
-    ORM model for application users.
-    """
-
+    
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(
@@ -50,7 +47,7 @@ class User(Base):
         nullable=False
     )
 
-    sessions: Mapped[list["Session"]] = relationship(
+    sessions: Mapped[List["Session"]] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",
         passive_deletes=True

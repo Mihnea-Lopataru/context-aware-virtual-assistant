@@ -5,9 +5,6 @@ from pydantic import BaseModel, Field, ConfigDict
 
 
 class UserBase(BaseModel):
-    """
-    Base user fields.
-    """
 
     username: str = Field(
         ...,
@@ -17,17 +14,11 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
-    """
-    Payload for creating a user.
-    """
 
     pass
 
 
 class UserUpdate(BaseModel):
-    """
-    Payload for updating a user.
-    """
 
     username: Optional[str] = Field(
         default=None,
@@ -39,9 +30,6 @@ class UserUpdate(BaseModel):
 
 
 class UserResponse(UserBase):
-    """
-    User data returned to client.
-    """
 
     id: int
     is_active: bool

@@ -3,6 +3,7 @@ from app.models.event import Event
 
 
 class ContextBuilder:
+
     def build(self, events: list[Event], user_message: str) -> dict[str, Any]:
         if not events:
             return {
@@ -18,9 +19,11 @@ class ContextBuilder:
         aggregated_context = {}
         recent_events_summary = []
 
+        scene_state = None
+
         for event in events:
             context = event.context_data or {}
-            
+
             success = context.get("is_correct")
 
             if success is True:
@@ -29,15 +32,20 @@ class ContextBuilder:
                 recent_failures += 1
 
             for key, value in context.items():
-                if key not in aggregated_context:
-                    aggregated_context[key] = value
+                aggregated_context[key] = value
 
             recent_events_summary.append({
                 "type": event.event_type,
                 "context": context
             })
 
-        struggling = recent_failures >= 3 and recent_failures > recent_successes
+            if scene_state is None and "scene_state" in context:
+                scene_state = context.get("scene_state")
+
+        struggling = (
+            recent_failures >= 3 and
+            recent_failures >= recent_successes
+        )
 
         return {
             "user_message": user_message,
@@ -51,6 +59,9 @@ class ContextBuilder:
 
             "aggregated_context": aggregated_context,
             "recent_events": recent_events_summary[:5],
+            "total_events": len(events),
+
+            "scene_state": scene_state,
 
             "summary": self._build_summary(
                 last_event.event_type,

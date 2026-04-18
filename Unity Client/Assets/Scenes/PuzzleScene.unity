@@ -2763,6 +2763,7 @@ GameObject:
   - component: {fileID: 942629930}
   - component: {fileID: 942629929}
   - component: {fileID: 942629928}
+  - component: {fileID: 942629933}
   - component: {fileID: 942629932}
   - component: {fileID: 942629931}
   m_Layer: 0
@@ -2839,6 +2840,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0a24e3f1eb8884e4fb4eddd79fbe5426, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ChatManager
+--- !u!114 &942629933
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 942629926}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fe0e24c462fd564baae9cc2b00cea50, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SceneStateBuilder
 --- !u!1 &948810731
 GameObject:
   m_ObjectHideFlags: 0

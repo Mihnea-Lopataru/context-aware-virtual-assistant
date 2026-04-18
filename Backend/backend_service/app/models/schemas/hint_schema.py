@@ -4,9 +4,6 @@ from pydantic import BaseModel, Field, ConfigDict
 
 
 class HintRequest(BaseModel):
-    """
-    Request for generating a contextual hint.
-    """
 
     session_id: int
 
@@ -25,9 +22,6 @@ class HintRequest(BaseModel):
 
 
 class HintResponse(BaseModel):
-    """
-    LLM-generated hint response.
-    """
 
     hint: str = Field(...)
 

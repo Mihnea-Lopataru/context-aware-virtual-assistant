@@ -6,6 +6,7 @@ from app.models.event import Event
 
 
 class EventRepository:
+    
     def __init__(self, db: Session):
         self.db = db
 

@@ -22,22 +22,7 @@ def get_hint_service(db: Session = Depends(get_db)) -> HintService:
     status_code=status.HTTP_200_OK,
     summary="Generate contextual hint"
 )
-def generate_hint(
-    data: HintRequest,
-    service: HintService = Depends(get_hint_service)
-):
-    """
-    Generates a contextual hint using:
-    - user message
-    - recent gameplay events
-    - knowledge JSON (provided by client)
-
-    Flow:
-    - builds context from events
-    - builds prompt
-    - queries LLM
-    - returns generated hint
-    """
+def generate_hint(data: HintRequest, service: HintService = Depends(get_hint_service)):
 
     try:
         return service.generate_hint(data)

@@ -87,6 +87,11 @@ public class ContextLogger : MonoBehaviour
         if (context == null)
             context = new Dictionary<string, object>();
 
+        if (SceneStateBuilder.Instance != null)
+        {
+            context["scene_state"] = SceneStateBuilder.Instance.BuildState();
+        }
+
         if (currentHeldPipe != null)
         {
             context["held_object_type"] = "pipe";

@@ -4,9 +4,6 @@ from pydantic import BaseModel, Field
 
 
 class PlayerState(BaseModel):
-    """
-    Generic player state snapshot.
-    """
 
     position: Optional[Dict[str, float]] = None
     rotation: Optional[Dict[str, float]] = None
@@ -14,9 +11,6 @@ class PlayerState(BaseModel):
 
 
 class PlayerEvent(BaseModel):
-    """
-    Generic event sent from Unity.
-    """
 
     event_id: Optional[str] = None
     session_id: Optional[int] = None
@@ -31,9 +25,6 @@ class PlayerEvent(BaseModel):
 
 
 class EventBatch(BaseModel):
-    """
-    Batch of events sent from Unity.
-    """
 
     session_id: int = Field(...)
 

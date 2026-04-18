@@ -10,19 +10,6 @@ load_dotenv()
 
 
 def _build_database_url() -> str:
-    """
-    Constructs the SQLAlchemy database URL from environment variables.
-
-    Expected environment variables:
-        DB_USER
-        DB_PASSWORD
-        DB_HOST
-        DB_PORT
-        DB_NAME
-
-    Returns:
-        str: A SQLAlchemy-compatible PostgreSQL connection string
-    """
 
     db_user = os.getenv("DB_USER", "admin")
     db_password = os.getenv("DB_PASSWORD", "admin")
