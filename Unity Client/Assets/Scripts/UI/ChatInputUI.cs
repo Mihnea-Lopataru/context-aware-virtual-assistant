@@ -48,6 +48,9 @@ public class ChatInputUI : MonoBehaviour
 
     private void Update()
     {
+        if (PauseMenuUI.Instance != null && PauseMenuUI.Instance.IsPaused)
+            return;
+
         HandleOpenChat();
         HandleSubmit();
         HandleCloseWithEscape();
@@ -61,7 +64,8 @@ public class ChatInputUI : MonoBehaviour
 
     private void HandleSubmit()
     {
-        if (!isChatActive) return;
+        if (!isChatActive)
+            return;
 
         if (Input.GetKeyDown(KeyCode.Return))
             SubmitMessage();
@@ -92,6 +96,9 @@ public class ChatInputUI : MonoBehaviour
         playerController.InputEnabled = false;
         playerInteraction.InputEnabled = false;
 
+        if (PauseMenuUI.Instance != null)
+            PauseMenuUI.Instance.InputEnabled = false;
+
         SpeechManager.Instance?.Stop();
     }
 
@@ -102,6 +109,12 @@ public class ChatInputUI : MonoBehaviour
         chatInputArea.SetActive(false);
         inputField.DeactivateInputField();
 
+        if (PauseMenuUI.Instance != null)
+            PauseMenuUI.Instance.InputEnabled = true;
+
+        if (PauseMenuUI.Instance != null && PauseMenuUI.Instance.IsPaused)
+            return;
+
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
@@ -111,6 +124,15 @@ public class ChatInputUI : MonoBehaviour
 
     private void CancelChat()
     {
+        inputField.text = "";
+        CloseChat();
+    }
+
+    public void ForceClose()
+    {
+        if (!isChatActive)
+            return;
+
         inputField.text = "";
         CloseChat();
     }
@@ -146,6 +168,9 @@ public class ChatInputUI : MonoBehaviour
 
     public async Task SendMessageFromVoice(string message)
     {
+        if (PauseMenuUI.Instance != null && PauseMenuUI.Instance.IsPaused)
+            return;
+
         if (isRequestInProgress)
             return;
 
@@ -168,11 +193,17 @@ public class ChatInputUI : MonoBehaviour
 
     private void HandleProcessingStarted()
     {
+        if (PauseMenuUI.Instance != null && PauseMenuUI.Instance.IsPaused)
+            return;
+
         loadingIndicator?.SetActive(true);
     }
 
     private void HandleResponse(string message, AudioClip clip)
     {
+        if (PauseMenuUI.Instance != null && PauseMenuUI.Instance.IsPaused)
+            return;
+
         StartCoroutine(ShowResultAndPlayAudio(message, clip));
     }
 
