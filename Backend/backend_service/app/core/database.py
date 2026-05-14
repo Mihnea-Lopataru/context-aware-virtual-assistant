@@ -1,29 +1,11 @@
-import os
 from typing import Generator
 
-from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 
+from app.core.config import build_database_url
 
-load_dotenv()
-
-
-def _build_database_url() -> str:
-
-    db_user = os.getenv("DB_USER", "admin")
-    db_password = os.getenv("DB_PASSWORD", "admin")
-    db_host = os.getenv("DB_HOST", "localhost")
-    db_port = os.getenv("DB_PORT", "5433")
-    db_name = os.getenv("DB_NAME", "ai_assistant")
-
-    return (
-        f"postgresql+psycopg2://"
-        f"{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
-    )
-
-
-DATABASE_URL = _build_database_url()
+DATABASE_URL = build_database_url()
 
 
 engine = create_engine(

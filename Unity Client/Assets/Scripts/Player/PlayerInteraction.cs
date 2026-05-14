@@ -76,7 +76,7 @@ public class PlayerInteraction : MonoBehaviour
             { "object_name", obj.name }
         };
 
-        var pipe = obj.GetComponent<Pipe>();
+        var pipe = obj.GetComponentInParent<Pipe>();
         if (pipe != null)
         {
             context["object_type"] = "pipe";
@@ -84,7 +84,7 @@ public class PlayerInteraction : MonoBehaviour
             context["pipe_color"] = pipe.Color.ToString().ToLower();
         }
 
-        var slot = obj.GetComponent<PipeSlot>();
+        var slot = obj.GetComponentInParent<PipeSlot>();
         if (slot != null)
         {
             context["object_type"] = "pipe_slot";

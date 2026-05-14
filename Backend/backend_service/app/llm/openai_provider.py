@@ -1,7 +1,7 @@
-import os
 import requests
 import logging
 
+from app.core.config import load_openai_api_key, settings
 from app.llm.base_provider import BaseLLMProvider
 
 logger = logging.getLogger(__name__)
@@ -11,8 +11,8 @@ class OpenAIProvider(BaseLLMProvider):
 
     def __init__(self):
         self.api_key = self._load_api_key()
-        self.base_url = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
-        self.model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+        self.base_url = settings.OPENAI_BASE_URL
+        self.model = settings.OPENAI_MODEL
 
     def generate(self, prompt: str) -> str:
         url = f"{self.base_url}/responses"
@@ -62,22 +62,8 @@ class OpenAIProvider(BaseLLMProvider):
         Loads OpenAI API key from file path (mounted via Docker secrets).
         """
 
-        path = os.getenv("OPENAI_API_KEY_PATH")
-
-        if not path:
-            raise ValueError("OPENAI_API_KEY_PATH is not set")
-
-        if not os.path.exists(path):
-            raise ValueError(f"OpenAI key file not found at {path}")
-
         try:
-            with open(path, "r") as f:
-                key = f.read().strip()
-
-            if not key:
-                raise ValueError("OpenAI API key file is empty")
-
-            return key
+            return load_openai_api_key()
 
         except Exception as e:
             logger.error(f"Failed to read OpenAI API key: {str(e)}")

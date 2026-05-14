@@ -67,6 +67,7 @@ public class PauseMenuUI : MonoBehaviour
         isPaused = true;
 
         FindAnyObjectByType<ChatInputUI>()?.ForceClose();
+        VoiceInputManager.Instance?.CancelVoiceInput();
 
         pauseMenuRoot.SetActive(true);
 
@@ -91,6 +92,8 @@ public class PauseMenuUI : MonoBehaviour
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+
+        VoiceInputManager.Instance?.ResumeWakeListeningIfAvailable();
     }
 
     private async Task QuitAsync()

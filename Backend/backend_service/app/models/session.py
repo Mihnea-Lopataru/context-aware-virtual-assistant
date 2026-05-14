@@ -12,7 +12,6 @@ from app.models.db.base import Base
 if TYPE_CHECKING:
     from app.models.user import User
     from app.models.event import Event
-    from app.models.message import Message
 
 
 class SessionStatus(str, Enum):
@@ -39,13 +38,6 @@ class Session(Base):
 
     events: Mapped[List["Event"]] = relationship(
         "Event",
-        back_populates="session",
-        cascade="all, delete-orphan",
-        passive_deletes=True
-    )
-
-    messages: Mapped[List["Message"]] = relationship(
-        "Message",
         back_populates="session",
         cascade="all, delete-orphan",
         passive_deletes=True

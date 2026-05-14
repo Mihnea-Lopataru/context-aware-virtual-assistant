@@ -1,6 +1,9 @@
+import logging
+
 from fastapi import FastAPI
 
 from app.core.database import engine
+from app.core.qdrant import ensure_chat_memory_collection
 from app.models.db.base import Base
 
 # =========================
@@ -9,7 +12,6 @@ from app.models.db.base import Base
 from app.models import user
 from app.models import session
 from app.models import event
-from app.models import message
 
 # =========================
 # IMPORT ROUTES
@@ -18,6 +20,9 @@ from app.routes import users
 from app.routes import sessions
 from app.routes import events
 from app.routes import hints
+
+
+logger = logging.getLogger(__name__)
 
 
 app = FastAPI(
@@ -34,6 +39,17 @@ app = FastAPI(
 # DATABASE INITIALIZATION
 # =========================
 Base.metadata.create_all(bind=engine)
+
+
+# =========================
+# VECTOR MEMORY INITIALIZATION
+# =========================
+@app.on_event("startup")
+def startup() -> None:
+    try:
+        ensure_chat_memory_collection()
+    except Exception as e:
+        logger.error("Qdrant startup initialization failed: %s", str(e))
 
 
 # =========================

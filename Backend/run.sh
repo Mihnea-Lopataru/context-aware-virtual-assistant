@@ -1,5 +1,13 @@
 #!/bin/bash
 
+set -e
+
+REBUILD=false
+
+if [ "$1" = "--build" ] || [ "$1" = "build" ]; then
+    REBUILD=true
+fi
+
 # -----------------------------
 # Get host IP dynamically
 # -----------------------------
@@ -9,26 +17,15 @@ export OLLAMA_BASE_URL=http://$HOST_IP:11434
 echo "Using OLLAMA at: $OLLAMA_BASE_URL"
 
 # -----------------------------
-# Get images from docker compose
+# Optionally build local services
 # -----------------------------
-IMAGES=$(docker compose config --images)
-
-BUILD_NEEDED=true
-
-for IMAGE in $IMAGES; do
-  if docker image inspect "$IMAGE" >/dev/null 2>&1; then
-    BUILD_NEEDED=false
-    break
-  fi
-done
-
-# -----------------------------
-# Run accordingly
-# -----------------------------
-if [ "$BUILD_NEEDED" = true ]; then
-  echo "No images found → building..."
-  docker compose up --build
-else
-  echo "Images found → starting without build..."
-  docker compose up
+if [ "$REBUILD" = true ]; then
+    echo "Building local Docker services..."
+    docker compose build
 fi
+
+# -----------------------------
+# Start all services
+# -----------------------------
+echo "Starting Docker Compose stack..."
+docker compose up

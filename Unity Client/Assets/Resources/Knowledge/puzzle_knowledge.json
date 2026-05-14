@@ -1,105 +1,124 @@
 {
-  "systems": ["red", "yellow"],
+  "puzzle_name": "Two-color pipe placement puzzle",
+  "puzzle_type": "pipe_matching",
+  "goal": "Fill every empty pipe gap with a pipe that matches both the color system and the visible shape of the missing segment.",
+
+  "systems": [
+    "red",
+    "yellow"
+  ],
 
   "pipe_types": [
     {
       "type": "Straight",
       "connections": 2,
-      "description": "connects two opposite directions",
-      "player_hint": "look for a straight empty gap where the pipe path continues in a line",
+      "description": "A pipe segment with two opposite openings.",
+      "visual_shape": "line",
+      "matching_gap": "A missing segment where the surrounding pipe path continues straight through the gap.",
+      "color_rule": "Use the straight pipe from the same color system as the surrounding path.",
+      "current_puzzle_usage": "Used in this puzzle.",
       "enabled": true
     },
     {
       "type": "Corner",
       "connections": 2,
-      "description": "connects two adjacent directions",
-      "player_hint": "look for an empty gap where the pipe path turns or bends",
+      "description": "A pipe segment with two adjacent openings.",
+      "visual_shape": "bend",
+      "matching_gap": "A missing segment where the surrounding pipe path turns ninety degrees.",
+      "color_rule": "Use the corner pipe from the same color system as the surrounding path.",
+      "current_puzzle_usage": "Used in this puzzle.",
       "enabled": true
     },
     {
       "type": "ThreeWay",
       "connections": 3,
-      "description": "connects three directions",
-      "player_hint": "look for an empty gap where three pipe paths meet",
+      "description": "A pipe segment with three openings.",
+      "visual_shape": "T junction",
+      "matching_gap": "A missing segment where three pipe paths meet.",
+      "color_rule": "Use the three-way pipe from the same color system as the surrounding paths.",
+      "current_puzzle_usage": "Used in this puzzle.",
       "enabled": true
     },
     {
       "type": "Cross",
       "connections": 4,
-      "description": "connects four directions",
-      "player_hint": "look for an empty gap where four pipe paths meet, like a four-way intersection",
+      "description": "A pipe segment with four openings.",
+      "visual_shape": "four-way intersection",
+      "matching_gap": "A missing segment where paths continue in four directions.",
+      "color_rule": "Use the cross pipe from the same color system as the surrounding paths.",
+      "current_puzzle_usage": "Used in this puzzle.",
       "enabled": true
     },
     {
       "type": "StraightWithValve",
       "connections": 2,
-      "description": "acts like a straight pipe but includes a valve",
-      "player_hint": "this pipe behaves like a straight pipe, but it is not needed for the current puzzle",
+      "description": "A straight pipe segment with a valve attached.",
+      "visual_shape": "line with valve",
+      "matching_gap": "It behaves like a straight segment, but this specific puzzle does not require it.",
+      "color_rule": "It still belongs to a color system, but it is not part of the current solution set.",
+      "current_puzzle_usage": "Available as an unused extra piece.",
       "enabled": false
     }
   ],
 
   "rules": [
-    "pipes should match the visible color of the surrounding pipe system",
-    "pipes should match the visible shape of the empty gap",
-    "pipes can only connect to pipes of the same color",
-    "not all available pipes are required to complete the puzzle",
-    "disabled pipe types are not required for the current puzzle"
+    "A correct placement matches the pipe color to the surrounding color system.",
+    "A correct placement matches the pipe type to the shape of the missing pipe segment.",
+    "Pipe colors do not mix across systems.",
+    "Pipe type is determined by the number and arrangement of openings.",
+    "Not every available pipe must be used.",
+    "Disabled pipe types are not required for the current puzzle."
   ],
 
-  "player_visible_guidance": [
-    "the player cannot see hidden slot requirements",
-    "do not tell the player to check what a slot requires",
-    "do not mention internal slot requirements as if they are visible",
-    "guide the player using visible clues such as pipe color, pipe shape, number of connections, and nearby pipe layout",
-    "when the player is holding a pipe, suggest looking for an empty gap with a matching visual shape",
-    "for a straight pipe, suggest looking for a straight missing segment",
-    "for a corner pipe, suggest looking for a bend in the pipe path",
-    "for a three-way pipe, suggest looking for a place where three pipe paths meet",
-    "for a cross pipe, suggest looking for a four-way intersection"
+  "visible_clues": [
+    "Color is visible on the pipe and on the surrounding pipe system.",
+    "A straight gap looks like a path continuing in one line.",
+    "A corner gap looks like a path that bends.",
+    "A three-way gap looks like three paths meeting.",
+    "A cross gap looks like four paths meeting.",
+    "The player can infer the correct pipe from nearby pipe color, nearby pipe direction, and the number of paths entering the gap."
   ],
 
   "common_mistakes": [
-    "using the correct shape but the wrong color",
-    "using the correct color but the wrong shape",
-    "trying to use all available pipes",
-    "repeating the same incorrect placement",
-    "choosing a pipe based only on color without checking the shape of the gap",
-    "looking for hidden slot requirements instead of visible pipe layout"
+    "Using the correct shape from the wrong color system.",
+    "Using the correct color with the wrong shape.",
+    "Trying to use every available pipe even when some are extras.",
+    "Repeating the same placement without comparing the pipe shape to the surrounding paths.",
+    "Choosing based only on color and ignoring how many directions the gap connects.",
+    "Treating the StraightWithValve pipe as required even though it is not needed in this puzzle."
   ],
 
-  "hint_style": [
-    "do not reveal exact hidden slot requirements",
-    "do not say that a slot requires a specific pipe",
-    "do not refer to backend validation logic or internal tags",
-    "use visible reasoning from the player's perspective",
-    "prefer phrases like 'look for', 'try to find', 'check the shape', or 'follow the surrounding pipes'",
-    "give directional hints, not direct solutions",
-    "if the player is holding a pipe, start from the pipe's visible type and guide them toward a matching visible gap"
+  "success_conditions": [
+    "All slots are filled.",
+    "Every placed pipe matches the color of its surrounding system.",
+    "Every placed pipe matches the shape of its gap.",
+    "The scene state reports zero incorrect slots."
   ],
 
   "examples": [
     {
-      "situation": "player is holding a cross pipe",
-      "good_hint": "You are holding a cross pipe, so look for an empty gap where four pipe paths meet. Also make sure it belongs to the same color system.",
-      "bad_hint": "Check which slot requires a cross pipe."
+      "pipe_type": "Straight",
+      "correct_match": "A same-color gap where the path continues straight.",
+      "incorrect_match": "A bend, junction, intersection, or gap in the other color system.",
+      "reason": "A straight pipe has two opposite openings."
     },
     {
-      "situation": "player is holding a three-way pipe",
-      "good_hint": "That pipe connects three directions, so try to find an empty gap where three pipe paths come together.",
-      "bad_hint": "Look at the slot requirement and place it there."
+      "pipe_type": "Corner",
+      "correct_match": "A same-color gap where the pipe path turns.",
+      "incorrect_match": "A straight segment, T junction, intersection, or gap in the other color system.",
+      "reason": "A corner pipe has two adjacent openings."
     },
     {
-      "situation": "player is holding a corner pipe",
-      "good_hint": "A corner pipe fits where the path bends, so look for a missing turn in the pipe layout.",
-      "bad_hint": "Find the slot that requires a corner pipe."
+      "pipe_type": "ThreeWay",
+      "correct_match": "A same-color gap where three paths meet.",
+      "incorrect_match": "A straight segment, bend, four-way intersection, or gap in the other color system.",
+      "reason": "A three-way pipe has three openings."
     },
     {
-      "situation": "player is holding a straight pipe",
-      "good_hint": "A straight pipe fits a gap where the path continues in one direction, so check for a missing straight segment.",
-      "bad_hint": "Use it in the slot marked as straight."
+      "pipe_type": "Cross",
+      "correct_match": "A same-color gap where four paths meet.",
+      "incorrect_match": "A straight segment, bend, T junction, or gap in the other color system.",
+      "reason": "A cross pipe has four openings."
     }
-  ],
-
-  "goal": "fill all visible gaps with pipes that match the color and shape of the surrounding pipe system"
+  ]
 }

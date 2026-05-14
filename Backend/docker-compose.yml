@@ -22,16 +22,28 @@ services:
 
       - OLLAMA_BASE_URL=${OLLAMA_BASE_URL}
       - OLLAMA_MODEL=llama3.1:8b
+      - OLLAMA_NUM_CTX=2048
+      - OLLAMA_NUM_PREDICT=160
 
       - OPENAI_API_KEY_PATH=/app/secrets/open-ai.txt
-      - OPENAI_MODEL=gpt-4o-mini
+      - OPENAI_MODEL=gpt-4.1-mini
+
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - QDRANT_COLLECTION_NAME=chat_memory
+
+      - EMBEDDING_PROVIDER=openai
+      - OPENAI_EMBEDDING_MODEL=text-embedding-3-small
 
     depends_on:
       postgres:
         condition: service_healthy
+      qdrant:
+        condition: service_started
 
     volumes:
       - ./backend_service:/app
+      - ./backend_service/secrets:/app/secrets
 
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -101,5 +113,23 @@ services:
     restart: unless-stopped
 
 
+  # -----------------------------
+  # Qdrant Vector Database
+  # -----------------------------
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant
+
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+    restart: unless-stopped
+
+
 volumes:
   postgres_data:
+  qdrant_data:

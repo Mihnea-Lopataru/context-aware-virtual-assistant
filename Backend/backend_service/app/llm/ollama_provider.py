@@ -1,7 +1,7 @@
-import os
 import requests
 import logging
 
+from app.core.config import settings
 from app.llm.base_provider import BaseLLMProvider
 
 logger = logging.getLogger(__name__)
@@ -9,8 +9,10 @@ logger = logging.getLogger(__name__)
 class OllamaProvider(BaseLLMProvider):
 
     def __init__(self):
-        self.base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-        self.model = os.getenv("OLLAMA_MODEL", "llama3.1:8b")
+        self.base_url = settings.OLLAMA_BASE_URL
+        self.model = settings.OLLAMA_MODEL
+        self.num_ctx = settings.OLLAMA_NUM_CTX
+        self.num_predict = settings.OLLAMA_NUM_PREDICT
 
     def generate(self, prompt: str) -> str:
             url = f"{self.base_url}/api/generate"
@@ -18,7 +20,11 @@ class OllamaProvider(BaseLLMProvider):
             payload = {
                 "model": self.model,
                 "prompt": prompt,
-                "stream": False
+                "stream": False,
+                "options": {
+                    "num_ctx": self.num_ctx,
+                    "num_predict": self.num_predict
+                }
             }
 
             try:

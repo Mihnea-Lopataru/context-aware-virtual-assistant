@@ -1,4 +1,4 @@
-﻿annotated-doc==0.0.4
+annotated-doc==0.0.4
 annotated-types==0.7.0
 anyio==4.13.0
 asttokens==3.0.1
@@ -17,8 +17,14 @@ executing==2.2.1
 fastapi==0.135.3
 fastjsonschema==2.21.2
 greenlet==3.4.0
+grpcio==1.80.0
 h11==0.16.0
+h2==4.3.0
+hpack==4.1.0
+httpcore==1.0.9
 httptools==0.7.1
+httpx==0.28.1
+hyperframe==6.1.0
 idna==3.11
 ipython==8.12.3
 jedi==0.19.2
@@ -34,12 +40,15 @@ mistune==3.2.0
 nbclient==0.10.4
 nbconvert==7.17.1
 nbformat==5.10.4
+numpy==2.4.4
 packaging==26.0
 pandocfilters==1.5.1
 parso==0.8.6
 pickleshare==0.7.5
 platformdirs==4.9.6
+portalocker==3.2.0
 prompt_toolkit==3.0.52
+protobuf==7.34.1
 psycopg2-binary==2.9.11
 pure_eval==0.2.3
 pydantic==2.12.5
@@ -49,6 +58,7 @@ python-dateutil==2.9.0.post0
 python-dotenv==1.2.2
 PyYAML==6.0.3
 pyzmq==27.1.0
+qdrant-client==1.18.0
 referencing==0.37.0
 requests==2.33.1
 rpds-py==0.30.0
@@ -69,4 +79,3 @@ wcwidth==0.6.0
 webencodings==0.5.1
 websockets==16.0
 yarg==0.1.9
-psycopg2-binary==2.9.11

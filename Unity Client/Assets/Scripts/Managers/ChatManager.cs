@@ -9,6 +9,9 @@ public class ChatManager : MonoBehaviour
     private HintServiceUnity hintService;
     private SpeechApi speechApi;
 
+    public bool IsProcessing { get; private set; }
+    public bool IsReady => hintService != null && speechApi != null;
+
     public event Action OnProcessingStarted;
     public event Action<string, AudioClip> OnResponseReady;
 
@@ -36,8 +39,30 @@ public class ChatManager : MonoBehaviour
             await Task.Yield();
     }
 
+    private async Task EnsureInitialized()
+    {
+        if (IsReady)
+            return;
+
+        await WaitForApiClient();
+
+        if (hintService == null)
+            hintService = new HintServiceUnity(ApiClient.Instance);
+
+        if (speechApi == null)
+            speechApi = new SpeechApi();
+    }
+
     public async Task ProcessMessage(string message)
     {
+        await EnsureInitialized();
+
+        if (IsProcessing)
+        {
+            Debug.LogWarning("[ChatManager] Message ignored because a request is already running.");
+            return;
+        }
+
         if (string.IsNullOrWhiteSpace(message))
         {
             Debug.LogWarning("[ChatManager] Empty message received.");
@@ -46,6 +71,8 @@ public class ChatManager : MonoBehaviour
 
         try
         {
+            IsProcessing = true;
+
             OnProcessingStarted?.Invoke();
 
             var response = await hintService.RequestHint(message);
@@ -73,6 +100,10 @@ public class ChatManager : MonoBehaviour
             Debug.LogError("[ChatManager] Error: " + e.Message);
 
             OnResponseReady?.Invoke("Something went wrong.", null);
+        }
+        finally
+        {
+            IsProcessing = false;
         }
     }
 }

@@ -4,7 +4,25 @@ using UnityEngine;
 
 public class VoiceInputManager : MonoBehaviour
 {
+    public static VoiceInputManager Instance { get; private set; }
+
     private SpeechApi speechApi;
+    private bool isProcessingVoice = false;
+
+    public bool BlocksChatInput =>
+        isProcessingVoice ||
+        (VoiceRecorder.Instance != null && VoiceRecorder.Instance.IsRecording);
+
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        Instance = this;
+    }
 
     private void Start()
     {
@@ -23,6 +41,9 @@ public class VoiceInputManager : MonoBehaviour
 
     private void OnDestroy()
     {
+        if (Instance == this)
+            Instance = null;
+
         if (WakeWordListener.Instance != null)
         {
             WakeWordListener.Instance.OnWakeWordDetected -= HandleWakeWord;
@@ -42,15 +63,21 @@ public class VoiceInputManager : MonoBehaviour
 
     private void HandleWakeWord()
     {
+        if (!CanStartVoiceRecording())
+            return;
+
         StartVoiceRecording();
     }
 
     private void HandleManualTrigger()
     {
-        if (Input.GetKeyDown(KeyCode.V))
-        {
-            StartVoiceRecording();
-        }
+        if (!Input.GetKeyDown(KeyCode.V))
+            return;
+
+        if (!CanStartVoiceRecording())
+            return;
+
+        StartVoiceRecording();
     }
 
     private void StartVoiceRecording()
@@ -73,6 +100,25 @@ public class VoiceInputManager : MonoBehaviour
         VoiceUI.Instance?.Show();
     }
 
+    private bool CanStartVoiceRecording()
+    {
+        if (PauseMenuUI.Instance != null && PauseMenuUI.Instance.IsPaused)
+            return false;
+
+        if (isProcessingVoice)
+            return false;
+
+        if (ChatInputUI.Instance != null && ChatInputUI.Instance.BlocksVoiceInput)
+            return false;
+
+        if (ChatManager.Instance == null ||
+            !ChatManager.Instance.IsReady ||
+            ChatManager.Instance.IsProcessing)
+            return false;
+
+        return true;
+    }
+
     private async void HandleRecordingFinished(AudioClip clip)
     {
         VoiceUI.Instance?.Hide();
@@ -85,6 +131,8 @@ public class VoiceInputManager : MonoBehaviour
 
         try
         {
+            isProcessingVoice = true;
+
             byte[] wavData = WavUtility.FromAudioClip(clip);
 
             var result = await speechApi.SpeechToText(wavData);
@@ -97,7 +145,7 @@ public class VoiceInputManager : MonoBehaviour
 
             string text = result.transcription;
 
-            if (ChatManager.Instance != null)
+            if (ChatManager.Instance != null && ChatManager.Instance.IsReady)
             {
                 await ChatManager.Instance.ProcessMessage(text);
             }
@@ -112,13 +160,35 @@ public class VoiceInputManager : MonoBehaviour
         }
         finally
         {
+            isProcessingVoice = false;
             ResumeWakeListening();
         }
     }
 
     private void ResumeWakeListening()
     {
+        if (PauseMenuUI.Instance != null && PauseMenuUI.Instance.IsPaused)
+            return;
+
+        if (ChatInputUI.Instance != null && ChatInputUI.Instance.BlocksVoiceInput)
+            return;
+
         WakeWordListener.Instance?.StartListening();
+    }
+
+    public void ResumeWakeListeningIfAvailable()
+    {
+        ResumeWakeListening();
+    }
+
+    public void CancelVoiceInput()
+    {
+        if (VoiceRecorder.Instance != null && VoiceRecorder.Instance.IsRecording)
+            VoiceRecorder.Instance.CancelRecording();
+
+        isProcessingVoice = false;
+        VoiceUI.Instance?.Hide();
+        WakeWordListener.Instance?.StopListening();
     }
 
     private void UpdateMicVolumeUI()

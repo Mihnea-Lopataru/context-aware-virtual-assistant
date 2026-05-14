@@ -11,7 +11,7 @@ public class SceneStateBuilder : MonoBehaviour
     {
         Instance = this;
 
-        slots = slots = FindObjectsByType<PipeSlot>(FindObjectsSortMode.None);
+        slots = FindObjectsByType<PipeSlot>(FindObjectsSortMode.None);
     }
 
     public Dictionary<string, object> BuildState()

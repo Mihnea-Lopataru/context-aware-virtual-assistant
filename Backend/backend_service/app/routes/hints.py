@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -10,6 +12,8 @@ router = APIRouter(
     prefix="/hints",
     tags=["Hints"]
 )
+
+logger = logging.getLogger(__name__)
 
 
 def get_hint_service(db: Session = Depends(get_db)) -> HintService:
@@ -34,7 +38,7 @@ def generate_hint(data: HintRequest, service: HintService = Depends(get_hint_ser
         )
 
     except Exception as e:
-        print("HINT ERROR:", str(e))
+        logger.exception("Hint generation request failed")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e)

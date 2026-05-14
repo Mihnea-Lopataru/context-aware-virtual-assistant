@@ -56,6 +56,12 @@ public class VoiceRecorder : MonoBehaviour
 
         recordingTimer += Time.deltaTime;
 
+        if (recordingTimer >= maxRecordingLength)
+        {
+            StopRecording();
+            return;
+        }
+
         UpdateVolume();
         DetectSilence();
     }
@@ -81,6 +87,7 @@ public class VoiceRecorder : MonoBehaviour
         isRecording = true;
         silenceTimer = 0f;
         recordingTimer = 0f;
+        currentVolume = 0f;
     }
 
     public void StopRecording()
@@ -93,9 +100,11 @@ public class VoiceRecorder : MonoBehaviour
         Microphone.End(microphoneDevice);
 
         isRecording = false;
+        currentVolume = 0f;
 
         if (position <= 0)
         {
+            recordingClip = null;
             return;
         }
 
@@ -112,7 +121,23 @@ public class VoiceRecorder : MonoBehaviour
 
         finalClip.SetData(samples, 0);
 
+        recordingClip = null;
+
         OnRecordingFinished?.Invoke(finalClip);
+    }
+
+    public void CancelRecording()
+    {
+        if (!isRecording)
+            return;
+
+        Microphone.End(microphoneDevice);
+
+        isRecording = false;
+        silenceTimer = 0f;
+        recordingTimer = 0f;
+        currentVolume = 0f;
+        recordingClip = null;
     }
 
     private void UpdateVolume()

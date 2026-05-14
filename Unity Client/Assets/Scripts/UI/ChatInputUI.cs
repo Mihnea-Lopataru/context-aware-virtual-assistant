@@ -5,6 +5,8 @@ using System.Collections;
 
 public class ChatInputUI : MonoBehaviour
 {
+    public static ChatInputUI Instance { get; private set; }
+
     [Header("UI References")]
     [SerializeField] private GameObject chatInputArea;
     [SerializeField] private GameObject loadingIndicator;
@@ -20,6 +22,20 @@ public class ChatInputUI : MonoBehaviour
     private bool isChatActive = false;
     private bool isRequestInProgress = false;
 
+    public bool IsChatActive => isChatActive;
+    public bool BlocksVoiceInput => isChatActive || isRequestInProgress;
+
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        Instance = this;
+    }
+
     private async void Start()
     {
         chatInputArea.SetActive(false);
@@ -33,6 +49,9 @@ public class ChatInputUI : MonoBehaviour
 
     private void OnDestroy()
     {
+        if (Instance == this)
+            Instance = null;
+
         if (ChatManager.Instance != null)
         {
             ChatManager.Instance.OnProcessingStarted -= HandleProcessingStarted;
@@ -42,7 +61,7 @@ public class ChatInputUI : MonoBehaviour
 
     private async Task WaitForChatManager()
     {
-        while (ChatManager.Instance == null)
+        while (ChatManager.Instance == null || !ChatManager.Instance.IsReady)
             await Task.Yield();
     }
 
@@ -58,7 +77,42 @@ public class ChatInputUI : MonoBehaviour
 
     private void HandleOpenChat()
     {
-        if (Input.GetKeyDown(KeyCode.T) && !isChatActive)
+        if (!Input.GetKeyDown(KeyCode.T) || isChatActive)
+            return;
+
+        if (VoiceInputManager.Instance != null && VoiceInputManager.Instance.BlocksChatInput)
+            return;
+
+        if (ChatManager.Instance == null ||
+            !ChatManager.Instance.IsReady ||
+            ChatManager.Instance.IsProcessing)
+            return;
+
+        OpenChat();
+    }
+
+    public bool CanOpenChat()
+    {
+        if (isChatActive || isRequestInProgress)
+            return false;
+
+        if (PauseMenuUI.Instance != null && PauseMenuUI.Instance.IsPaused)
+            return false;
+
+        if (VoiceInputManager.Instance != null && VoiceInputManager.Instance.BlocksChatInput)
+            return false;
+
+        if (ChatManager.Instance == null ||
+            !ChatManager.Instance.IsReady ||
+            ChatManager.Instance.IsProcessing)
+            return false;
+
+        return true;
+    }
+
+    public void TryOpenChat()
+    {
+        if (CanOpenChat())
             OpenChat();
     }
 
@@ -93,16 +147,20 @@ public class ChatInputUI : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
-        playerController.InputEnabled = false;
-        playerInteraction.InputEnabled = false;
+        if (playerController != null)
+            playerController.InputEnabled = false;
+
+        if (playerInteraction != null)
+            playerInteraction.InputEnabled = false;
 
         if (PauseMenuUI.Instance != null)
             PauseMenuUI.Instance.InputEnabled = false;
 
         SpeechManager.Instance?.Stop();
+        WakeWordListener.Instance?.StopListening();
     }
 
-    private void CloseChat()
+    private void CloseChat(bool resumeVoiceListening = true)
     {
         isChatActive = false;
 
@@ -118,8 +176,14 @@ public class ChatInputUI : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
-        playerController.InputEnabled = true;
-        playerInteraction.InputEnabled = true;
+        if (playerController != null)
+            playerController.InputEnabled = true;
+
+        if (playerInteraction != null)
+            playerInteraction.InputEnabled = true;
+
+        if (resumeVoiceListening)
+            VoiceInputManager.Instance?.ResumeWakeListeningIfAvailable();
     }
 
     private void CancelChat()
@@ -134,7 +198,7 @@ public class ChatInputUI : MonoBehaviour
             return;
 
         inputField.text = "";
-        CloseChat();
+        CloseChat(resumeVoiceListening: false);
     }
 
     private async void SubmitMessage()
@@ -149,7 +213,7 @@ public class ChatInputUI : MonoBehaviour
 
         isRequestInProgress = true;
 
-        CloseChat();
+        CloseChat(resumeVoiceListening: false);
 
         try
         {
@@ -163,6 +227,7 @@ public class ChatInputUI : MonoBehaviour
         finally
         {
             isRequestInProgress = false;
+            VoiceInputManager.Instance?.ResumeWakeListeningIfAvailable();
         }
     }
 
@@ -188,6 +253,7 @@ public class ChatInputUI : MonoBehaviour
         finally
         {
             isRequestInProgress = false;
+            VoiceInputManager.Instance?.ResumeWakeListeningIfAvailable();
         }
     }
 

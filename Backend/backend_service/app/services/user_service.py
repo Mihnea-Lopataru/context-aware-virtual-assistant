@@ -4,11 +4,13 @@ from sqlalchemy.orm import Session
 
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
+from app.services.memory_service import MemoryService
 
 
 class UserService:
     def __init__(self, db: Session):
         self.repo = UserRepository(db)
+        self.memory_service = MemoryService()
 
     def create_user(self, username: str) -> User:
         existing_user = self.repo.get_by_username(username)
@@ -43,5 +45,7 @@ class UserService:
         if not user:
             return None
 
+        self.memory_service.delete_user_memory(user_id)
         self.repo.delete(user)
+
         return user
