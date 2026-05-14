@@ -1,6 +1,6 @@
 # Context-Aware Virtual Assistant
 
-A master's dissertation prototype that integrates a contextual AI assistant into an interactive Unity environment. The project demonstrates how gameplay telemetry, scene-specific knowledge, conversational memory, speech interaction, and large language models can be combined to provide short, relevant, player-facing assistance during gameplay.
+A prototype that integrates a contextual AI assistant into an interactive Unity environment. The project demonstrates how gameplay telemetry, scene-specific knowledge, conversational memory, speech interaction, and large language models can be combined to provide short, relevant, player-facing assistance during gameplay.
 
 ## Project Goal
 
