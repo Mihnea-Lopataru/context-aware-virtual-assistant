@@ -5869,8 +5869,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd808fd2c316a934e870522eb67801b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpeechConfig
-  ttsProvider: 0
-  sttProvider: 0
+  ttsProvider: 1
+  sttProvider: 1
 --- !u!114 &1553451182
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5883,7 +5883,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fd003046e5439884e93c0657044ce771, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AIConfig
-  provider: 0
+  provider: 1
 --- !u!4 &1553451183
 Transform:
   m_ObjectHideFlags: 0

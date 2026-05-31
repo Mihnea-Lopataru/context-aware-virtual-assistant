@@ -1,0 +1,7 @@
+provider,context_mode,memory_enabled,number_of_requests,success_rate,average_total_latency_ms,average_llm_latency_ms,average_memory_latency_ms,average_prompt_length_chars,average_response_length_chars
+ollama,full,False,24,1.0,1418.022,1417.828,0.0,6406.75,128.5
+ollama,full,True,24,1.0,1988.297,1660.641,327.415,7335.0,150.125
+ollama,none,False,24,1.0,1595.901,1595.785,0.0,4254.25,163.958
+openai,full,False,24,1.0,1489.289,1489.086,0.0,6406.75,114.75
+openai,full,True,24,1.0,1775.339,1474.027,301.097,7335.0,137.417
+openai,none,False,24,1.0,1609.957,1609.834,0.0,4254.25,123.958

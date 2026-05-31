@@ -9,7 +9,7 @@ from vosk import Model, KaldiRecognizer
 from app.speech.utils.audio_utils import convert_to_wav
 from app.speech.interfaces.stt_interface import STTProvider
 
-MODEL_PATH = os.path.join("data", "models", "vosk-model-small-en-us-0.15")
+MODEL_PATH = os.path.join("data", "models", "vosk-model-en-us-0.22")
 
 _model: Optional[Model] = Model(MODEL_PATH)
 

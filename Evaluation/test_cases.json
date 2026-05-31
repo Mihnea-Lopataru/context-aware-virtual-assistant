@@ -1,0 +1,212 @@
+{
+  "test_cases": [
+    {
+      "test_case_id": "initial_state",
+      "description": "Initial state before the player has interacted with any pipe.",
+      "user_query": "What should I do?",
+      "user_id": 9001,
+      "session_id": 9001,
+      "scene_name": "PuzzleScene",
+      "player_position": {"x": 0.0, "y": 1.7, "z": -2.5},
+      "player_rotation": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "gaze_direction": {"x": 0.0, "y": -0.1, "z": 1.0},
+      "currently_held_object": null,
+      "inventory_state": [],
+      "pipe_states": [
+        {"pipe_id": "straight_short", "type": "straight", "state": "available"},
+        {"pipe_id": "curved_short", "type": "curved", "state": "available"},
+        {"pipe_id": "three_way", "type": "junction", "state": "available"}
+      ],
+      "slot_states": [
+        {"slot_id": "slot_a", "required_pipe": "straight_short", "occupied_by": null},
+        {"slot_id": "slot_b", "required_pipe": "curved_short", "occupied_by": null},
+        {"slot_id": "slot_c", "required_pipe": "three_way", "occupied_by": null}
+      ],
+      "puzzle_progress": {"correct_placements": 0, "total_slots": 3, "status": "not_started"},
+      "recent_events": [],
+      "expected_behavior_notes": "Should orient the player toward inspecting pipes and slots without giving a full solution."
+    },
+    {
+      "test_case_id": "wrong_object_selected",
+      "description": "Player picked up a pipe that does not match the nearest slot.",
+      "user_query": "Is this the right pipe?",
+      "user_id": 9001,
+      "session_id": 9001,
+      "scene_name": "PuzzleScene",
+      "player_position": {"x": 1.2, "y": 1.7, "z": 0.4},
+      "player_rotation": {"x": 0.0, "y": 35.0, "z": 0.0},
+      "gaze_direction": {"x": 0.55, "y": -0.15, "z": 0.82},
+      "currently_held_object": "three_way",
+      "inventory_state": ["three_way"],
+      "pipe_states": [
+        {"pipe_id": "three_way", "type": "junction", "state": "held"},
+        {"pipe_id": "curved_short", "type": "curved", "state": "available"}
+      ],
+      "slot_states": [
+        {"slot_id": "slot_b", "required_pipe": "curved_short", "occupied_by": null, "distance_to_player": 0.8}
+      ],
+      "puzzle_progress": {"correct_placements": 0, "total_slots": 3, "status": "in_progress"},
+      "recent_events": [
+        {"event_type": "pipe_picked_up", "context": {"pipe_id": "three_way"}},
+        {"event_type": "slot_approached", "context": {"slot_id": "slot_b", "required_pipe": "curved_short"}}
+      ],
+      "expected_behavior_notes": "Should indicate that the held pipe probably does not match the nearby slot and suggest comparing shape/orientation."
+    },
+    {
+      "test_case_id": "near_correct_slot",
+      "description": "Player holds the correct pipe and is near the matching slot.",
+      "user_query": "Where should I place this?",
+      "user_id": 9001,
+      "session_id": 9001,
+      "scene_name": "PuzzleScene",
+      "player_position": {"x": -0.7, "y": 1.7, "z": 1.1},
+      "player_rotation": {"x": 0.0, "y": -20.0, "z": 0.0},
+      "gaze_direction": {"x": -0.34, "y": -0.12, "z": 0.93},
+      "currently_held_object": "curved_short",
+      "inventory_state": ["curved_short"],
+      "pipe_states": [
+        {"pipe_id": "curved_short", "type": "curved", "state": "held"}
+      ],
+      "slot_states": [
+        {"slot_id": "slot_b", "required_pipe": "curved_short", "occupied_by": null, "distance_to_player": 0.5}
+      ],
+      "puzzle_progress": {"correct_placements": 1, "total_slots": 3, "status": "in_progress"},
+      "recent_events": [
+        {"event_type": "pipe_picked_up", "context": {"pipe_id": "curved_short"}},
+        {"event_type": "slot_approached", "context": {"slot_id": "slot_b", "required_pipe": "curved_short", "is_correct": true}}
+      ],
+      "expected_behavior_notes": "Should confirm the player is close and give a spatial hint without naming every remaining placement."
+    },
+    {
+      "test_case_id": "incorrect_placement",
+      "description": "Player placed a pipe in the wrong slot.",
+      "user_query": "Why is it not working?",
+      "user_id": 9001,
+      "session_id": 9001,
+      "scene_name": "PuzzleScene",
+      "player_position": {"x": 0.8, "y": 1.7, "z": 1.4},
+      "player_rotation": {"x": 0.0, "y": 95.0, "z": 0.0},
+      "gaze_direction": {"x": 0.98, "y": -0.05, "z": 0.1},
+      "currently_held_object": null,
+      "inventory_state": [],
+      "pipe_states": [
+        {"pipe_id": "straight_short", "type": "straight", "state": "placed", "placed_slot": "slot_b"}
+      ],
+      "slot_states": [
+        {"slot_id": "slot_b", "required_pipe": "curved_short", "occupied_by": "straight_short", "is_correct": false}
+      ],
+      "puzzle_progress": {"correct_placements": 1, "total_slots": 3, "status": "in_progress"},
+      "recent_events": [
+        {"event_type": "pipe_placed", "context": {"pipe_id": "straight_short", "slot_id": "slot_b", "is_correct": false}}
+      ],
+      "expected_behavior_notes": "Should explain that the shape or connection path likely mismatches the slot and suggest reassessing the slot's required bend."
+    },
+    {
+      "test_case_id": "repeated_help_request",
+      "description": "Recent events show that the player asked for help multiple times.",
+      "user_query": "I still don't understand what to do.",
+      "user_id": 9001,
+      "session_id": 9001,
+      "scene_name": "PuzzleScene",
+      "player_position": {"x": 0.2, "y": 1.7, "z": 0.3},
+      "player_rotation": {"x": 0.0, "y": 10.0, "z": 0.0},
+      "gaze_direction": {"x": 0.1, "y": -0.1, "z": 0.99},
+      "currently_held_object": "straight_short",
+      "inventory_state": ["straight_short"],
+      "pipe_states": [
+        {"pipe_id": "straight_short", "type": "straight", "state": "held"}
+      ],
+      "slot_states": [
+        {"slot_id": "slot_a", "required_pipe": "straight_short", "occupied_by": null}
+      ],
+      "puzzle_progress": {"correct_placements": 0, "total_slots": 3, "status": "in_progress"},
+      "recent_events": [
+        {"event_type": "help_requested", "context": {"is_correct": false}},
+        {"event_type": "pipe_placed", "context": {"pipe_id": "straight_short", "slot_id": "slot_b", "is_correct": false}},
+        {"event_type": "help_requested", "context": {"is_correct": false}},
+        {"event_type": "pipe_placed", "context": {"pipe_id": "straight_short", "slot_id": "slot_c", "is_correct": false}},
+        {"event_type": "help_requested", "context": {"is_correct": false}}
+      ],
+      "expected_behavior_notes": "Should become more direct than usual because the player is struggling, while still avoiding a complete solution dump."
+    },
+    {
+      "test_case_id": "vague_question",
+      "description": "Player is in the puzzle area but not looking directly at a slot.",
+      "user_query": "Can you help me?",
+      "user_id": 9001,
+      "session_id": 9001,
+      "scene_name": "PuzzleScene",
+      "player_position": {"x": -1.4, "y": 1.7, "z": -0.8},
+      "player_rotation": {"x": 0.0, "y": 170.0, "z": 0.0},
+      "gaze_direction": {"x": 0.0, "y": -0.1, "z": -1.0},
+      "currently_held_object": null,
+      "inventory_state": [],
+      "pipe_states": [
+        {"pipe_id": "straight_short", "type": "straight", "state": "available"},
+        {"pipe_id": "curved_short", "type": "curved", "state": "available"}
+      ],
+      "slot_states": [
+        {"slot_id": "slot_a", "required_pipe": "straight_short", "occupied_by": null, "distance_to_player": 2.2}
+      ],
+      "puzzle_progress": {"correct_placements": 0, "total_slots": 3, "status": "in_progress"},
+      "recent_events": [
+        {"event_type": "entered_puzzle_area", "context": {"area": "pipe_table"}}
+      ],
+      "expected_behavior_notes": "Should answer the vague request with a first useful step, probably looking for a nearby open slot or matching shape."
+    },
+    {
+      "test_case_id": "almost_complete_puzzle",
+      "description": "Most pipes are correctly placed and one pipe remains.",
+      "user_query": "What is missing?",
+      "user_id": 9001,
+      "session_id": 9001,
+      "scene_name": "PuzzleScene",
+      "player_position": {"x": 0.4, "y": 1.7, "z": 1.9},
+      "player_rotation": {"x": 0.0, "y": 5.0, "z": 0.0},
+      "gaze_direction": {"x": 0.04, "y": -0.12, "z": 0.99},
+      "currently_held_object": null,
+      "inventory_state": [],
+      "pipe_states": [
+        {"pipe_id": "straight_short", "type": "straight", "state": "placed", "placed_slot": "slot_a"},
+        {"pipe_id": "curved_short", "type": "curved", "state": "available"},
+        {"pipe_id": "three_way", "type": "junction", "state": "placed", "placed_slot": "slot_c"}
+      ],
+      "slot_states": [
+        {"slot_id": "slot_a", "required_pipe": "straight_short", "occupied_by": "straight_short", "is_correct": true},
+        {"slot_id": "slot_b", "required_pipe": "curved_short", "occupied_by": null, "is_correct": null},
+        {"slot_id": "slot_c", "required_pipe": "three_way", "occupied_by": "three_way", "is_correct": true}
+      ],
+      "puzzle_progress": {"correct_placements": 2, "total_slots": 3, "status": "almost_complete"},
+      "recent_events": [
+        {"event_type": "pipe_placed", "context": {"pipe_id": "three_way", "slot_id": "slot_c", "is_correct": true}},
+        {"event_type": "puzzle_progress_updated", "context": {"correct_placements": 2, "total_slots": 3}}
+      ],
+      "expected_behavior_notes": "Should identify that one open connection remains and nudge toward the curved pipe without revealing unnecessary placements."
+    },
+    {
+      "test_case_id": "direct_curved_pipe_question",
+      "description": "Player asks directly where the curved pipe goes.",
+      "user_query": "Where does the curved pipe go?",
+      "user_id": 9001,
+      "session_id": 9001,
+      "scene_name": "PuzzleScene",
+      "player_position": {"x": -0.2, "y": 1.7, "z": 1.0},
+      "player_rotation": {"x": 0.0, "y": -12.0, "z": 0.0},
+      "gaze_direction": {"x": -0.2, "y": -0.1, "z": 0.98},
+      "currently_held_object": "curved_short",
+      "inventory_state": ["curved_short"],
+      "pipe_states": [
+        {"pipe_id": "curved_short", "type": "curved", "state": "held"}
+      ],
+      "slot_states": [
+        {"slot_id": "slot_b", "required_pipe": "curved_short", "occupied_by": null, "distance_to_player": 0.7}
+      ],
+      "puzzle_progress": {"correct_placements": 1, "total_slots": 3, "status": "in_progress"},
+      "recent_events": [
+        {"event_type": "pipe_picked_up", "context": {"pipe_id": "curved_short"}},
+        {"event_type": "slot_approached", "context": {"slot_id": "slot_b", "required_pipe": "curved_short"}}
+      ],
+      "expected_behavior_notes": "Should answer the direct question with a useful but restrained placement hint."
+    }
+  ]
+}
