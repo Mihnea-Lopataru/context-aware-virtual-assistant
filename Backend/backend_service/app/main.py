@@ -20,6 +20,7 @@ from app.routes import users
 from app.routes import sessions
 from app.routes import events
 from app.routes import hints
+from app.routes import evaluation
 
 
 logger = logging.getLogger(__name__)
@@ -59,6 +60,7 @@ app.include_router(users.router)
 app.include_router(sessions.router)
 app.include_router(events.router)
 app.include_router(hints.router)
+app.include_router(evaluation.router)
 
 
 # =========================

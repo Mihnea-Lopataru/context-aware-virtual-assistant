@@ -83,10 +83,11 @@ class MemoryService:
         content: str,
         scene_id: Optional[str] = None,
         provider: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None
-    ) -> None:
+        metadata: Optional[Dict[str, Any]] = None,
+        point_id: Optional[str] = None
+    ) -> bool:
         if not self.repository:
-            return
+            return False
 
         try:
             vector = self._get_embedding_provider().embed_text(content)
@@ -110,13 +111,15 @@ class MemoryService:
                 payload["metadata"] = metadata
 
             self.repository.upsert_message(
-                point_id=str(uuid4()),
+                point_id=point_id or str(uuid4()),
                 vector=vector,
                 payload=payload
             )
+            return True
 
         except Exception as e:
             logger.error("Vector memory store failed: %s", str(e))
+            return False
 
     def delete_user_memory(self, user_id: int) -> None:
         if not self.repository:
