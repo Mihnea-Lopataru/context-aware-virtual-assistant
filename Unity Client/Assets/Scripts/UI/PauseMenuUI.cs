@@ -10,7 +10,7 @@ public class PauseMenuUI : MonoBehaviour
     [Header("UI References")]
     [SerializeField] private GameObject pauseMenuRoot;
     [SerializeField] private Button resumeButton;
-    [SerializeField] private Button quitButton;
+    [SerializeField] private Button menuButton;
 
     [Header("Player")]
     [SerializeField] private PlayerController playerController;
@@ -36,7 +36,7 @@ public class PauseMenuUI : MonoBehaviour
         pauseMenuRoot.SetActive(false);
 
         resumeButton.onClick.AddListener(Resume);
-        quitButton.onClick.AddListener(() => _ = QuitAsync());
+        menuButton.onClick.AddListener(() => _ = QuitAsync());
     }
 
     private void OnDestroy()
@@ -45,7 +45,7 @@ public class PauseMenuUI : MonoBehaviour
             Instance = null;
 
         resumeButton.onClick.RemoveListener(Resume);
-        quitButton.onClick.RemoveAllListeners();
+        menuButton.onClick.RemoveAllListeners();
     }
 
     private void Update()
@@ -106,7 +106,7 @@ public class PauseMenuUI : MonoBehaviour
         SetGameplayInput(false);
 
         resumeButton.interactable = false;
-        quitButton.interactable = false;
+        menuButton.interactable = false;
 
         try
         {
