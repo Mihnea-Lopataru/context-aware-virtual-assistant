@@ -2,15 +2,21 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using TMPro;
 
 public class PauseMenuUI : MonoBehaviour
 {
     public static PauseMenuUI Instance { get; private set; }
 
+    private const int LocalProviderIndex = 0;
+    private const int CloudProviderIndex = 1;
+
     [Header("UI References")]
     [SerializeField] private GameObject pauseMenuRoot;
     [SerializeField] private Button resumeButton;
     [SerializeField] private Button menuButton;
+    [SerializeField] private TMP_Dropdown providerDropdown;
 
     [Header("Player")]
     [SerializeField] private PlayerController playerController;
@@ -54,6 +60,8 @@ public class PauseMenuUI : MonoBehaviour
             menuButton.onClick.AddListener(() => _ = QuitAsync());
         else
             Debug.LogError("[PauseMenuUI] Menu button is not assigned.");
+
+        ConfigureProviderDropdown();
     }
 
     private void OnDestroy()
@@ -63,6 +71,9 @@ public class PauseMenuUI : MonoBehaviour
 
         resumeButton?.onClick.RemoveListener(Resume);
         menuButton?.onClick.RemoveAllListeners();
+
+        if (providerDropdown != null)
+            providerDropdown.onValueChanged.RemoveListener(HandleProviderDropdownChanged);
     }
 
     private void Update()
@@ -94,6 +105,8 @@ public class PauseMenuUI : MonoBehaviour
         Cursor.visible = true;
 
         SpeechManager.Instance?.Stop();
+
+        SyncProviderDropdownSelection();
     }
 
     public void Resume()
@@ -158,5 +171,115 @@ public class PauseMenuUI : MonoBehaviour
 
         if (playerInteraction != null)
             playerInteraction.InputEnabled = enabled;
+    }
+
+    private void ConfigureProviderDropdown()
+    {
+        if (providerDropdown == null && pauseMenuRoot != null)
+            providerDropdown = pauseMenuRoot.GetComponentInChildren<TMP_Dropdown>(true);
+
+        if (providerDropdown == null)
+        {
+            Debug.LogWarning("[PauseMenuUI] Provider dropdown is not assigned. Provider switching is disabled.");
+            return;
+        }
+
+        providerDropdown.onValueChanged.RemoveListener(HandleProviderDropdownChanged);
+
+        providerDropdown.ClearOptions();
+        providerDropdown.AddOptions(new List<string> { "LOCAL", "CLOUD" });
+
+        SyncProviderDropdownSelection();
+
+        providerDropdown.onValueChanged.AddListener(HandleProviderDropdownChanged);
+    }
+
+    private void SyncProviderDropdownSelection()
+    {
+        if (providerDropdown == null)
+            return;
+
+        int selectedIndex = IsCloudProviderMode() ? CloudProviderIndex : LocalProviderIndex;
+        providerDropdown.SetValueWithoutNotify(selectedIndex);
+        providerDropdown.RefreshShownValue();
+    }
+
+    private bool IsCloudProviderMode()
+    {
+        bool aiIsCloud = AIConfig.Instance != null &&
+                         AIConfig.Instance.CurrentProvider == LLMProvider.OpenAI;
+
+        bool speechIsCloud = SpeechConfig.Instance != null &&
+                             (SpeechConfig.Instance.CurrentSTTProvider == STTProvider.Google ||
+                              SpeechConfig.Instance.CurrentTTSProvider == TTSProvider.Google);
+
+        return aiIsCloud || speechIsCloud;
+    }
+
+    private void HandleProviderDropdownChanged(int selectedIndex)
+    {
+        switch (selectedIndex)
+        {
+            case LocalProviderIndex:
+                ApplyLocalProviders();
+                break;
+            case CloudProviderIndex:
+                ApplyCloudProviders();
+                break;
+            default:
+                Debug.LogWarning($"[PauseMenuUI] Unknown provider dropdown index: {selectedIndex}");
+                SyncProviderDropdownSelection();
+                break;
+        }
+    }
+
+    private void ApplyLocalProviders()
+    {
+        ApplyProviderMode(
+            "LOCAL",
+            LLMProvider.Ollama,
+            STTProvider.Vosk,
+            TTSProvider.Piper
+        );
+    }
+
+    private void ApplyCloudProviders()
+    {
+        ApplyProviderMode(
+            "CLOUD",
+            LLMProvider.OpenAI,
+            STTProvider.Google,
+            TTSProvider.Google
+        );
+    }
+
+    private void ApplyProviderMode(
+        string modeName,
+        LLMProvider llmProvider,
+        STTProvider sttProvider,
+        TTSProvider ttsProvider)
+    {
+        if (ChatManager.Instance != null && ChatManager.Instance.IsProcessing)
+        {
+            Debug.LogWarning("[PauseMenuUI] Provider mode changed while a chat request is processing. The current request may finish with the previous provider.");
+        }
+
+        if (AIConfig.Instance != null)
+            AIConfig.Instance.SetProvider(llmProvider);
+        else
+            Debug.LogWarning("[PauseMenuUI] AIConfig is not available. LLM provider was not changed.");
+
+        if (SpeechConfig.Instance != null)
+        {
+            SpeechConfig.Instance.SetSTTProvider(sttProvider);
+            SpeechConfig.Instance.SetTTSProvider(ttsProvider);
+            SpeechConfig.Instance.SaveSettings();
+        }
+        else
+        {
+            Debug.LogWarning("[PauseMenuUI] SpeechConfig is not available. Speech providers were not changed.");
+        }
+
+        Debug.Log($"[PauseMenuUI] Provider mode set to {modeName}. LLM={llmProvider}, STT={sttProvider}, TTS={ttsProvider}");
     }
 }
