@@ -21,12 +21,12 @@ services:
       - DB_NAME=ai_assistant
 
       - OLLAMA_BASE_URL=${OLLAMA_BASE_URL}
-      - OLLAMA_MODEL=llama3.1:8b
+      - OLLAMA_MODEL=qwen2.5:7b
       - OLLAMA_NUM_CTX=2048
       - OLLAMA_NUM_PREDICT=160
 
       - OPENAI_API_KEY_PATH=/app/secrets/open-ai.txt
-      - OPENAI_MODEL=gpt-4.1-mini
+      - OPENAI_MODEL=gpt-5.4-mini
 
       - QDRANT_HOST=qdrant
       - QDRANT_PORT=6333
