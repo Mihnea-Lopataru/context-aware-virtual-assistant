@@ -44,13 +44,16 @@ class HintService:
         context = self.context_builder.build(events, data.message)
         scene_id = self._extract_scene_id(session, context)
 
-        semantic_memory = self.memory_service.search_relevant_messages(
-            user_id=session.user_id,
-            session_id=data.session_id,
-            query=data.message,
-            limit=MEMORY_LIMIT,
-            exclude_content=data.message
-        )
+        if self._is_live_state_question(data.message):
+            semantic_memory = []
+        else:
+            semantic_memory = self.memory_service.search_relevant_messages(
+                user_id=session.user_id,
+                session_id=data.session_id,
+                query=data.message,
+                limit=MEMORY_LIMIT,
+                exclude_content=data.message
+            )
 
         prompt = self.prompt_builder.build(
             context=context,
@@ -190,3 +193,16 @@ class HintService:
                 return str(scene_id)
 
         return None
+
+    def _is_live_state_question(self, message: str) -> bool:
+        if not message:
+            return False
+
+        normalized = message.lower()
+
+        return bool(re.search(
+            r"\b(how many|number of|count)\b.*\b("
+            r"slots?|left|remaining|filled|empty|correct|incorrect|placed"
+            r")\b",
+            normalized
+        ))

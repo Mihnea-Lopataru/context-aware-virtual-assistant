@@ -52,6 +52,15 @@ Use the information below in this priority order:
 Important:
 
 - Recent gameplay context overrides older conversation memory.
+- Current scene state is the authoritative source for live puzzle facts such as
+  remaining slots, filled slots, correct slots, incorrect slots, and current
+  placements.
+- If conversation memory, aggregated context, or recent events disagree with
+  the top-level Scene state section, use the top-level Scene state section.
+- When the player asks how many slots remain or how many are filled/correct,
+  answer from `remaining_slots`, `filled_slots`, `correct_slots`, and
+  `incorrect_slots` in the current Scene state. Never answer these count
+  questions from conversation memory.
 - Semantic memory is retrieved by relevance, not by time. Use it only when it helps.
 - If memory is irrelevant, stale, or conflicts with the current scene, ignore it.
 - Use memory to resolve references like "it", "that", "same thing", or "what about this".

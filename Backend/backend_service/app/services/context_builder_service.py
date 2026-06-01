@@ -32,7 +32,8 @@ class ContextBuilder:
                 recent_failures += 1
 
             for key, value in context.items():
-                aggregated_context[key] = value
+                if key not in aggregated_context:
+                    aggregated_context[key] = value
 
             recent_events_summary.append({
                 "type": event.event_type,
@@ -41,6 +42,9 @@ class ContextBuilder:
 
             if scene_state is None and "scene_state" in context:
                 scene_state = context.get("scene_state")
+
+        if scene_state is not None:
+            aggregated_context["scene_state"] = scene_state
 
         struggling = (
             recent_failures >= 3 and
