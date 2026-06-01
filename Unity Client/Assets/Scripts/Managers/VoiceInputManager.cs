@@ -8,6 +8,7 @@ public class VoiceInputManager : MonoBehaviour
 
     private SpeechApi speechApi;
     private bool isProcessingVoice = false;
+    private int voiceOperationVersion = 0;
 
     public bool BlocksChatInput =>
         isProcessingVoice ||
@@ -49,6 +50,8 @@ public class VoiceInputManager : MonoBehaviour
 
     private void OnDestroy()
     {
+        voiceOperationVersion++;
+
         if (Instance == this)
             Instance = null;
 
@@ -130,12 +133,14 @@ public class VoiceInputManager : MonoBehaviour
 
     private async void HandleRecordingFinished(AudioClip clip)
     {
+        int operationVersion = ++voiceOperationVersion;
+
         VoiceUI.Instance?.Hide();
 
         if (clip == null)
         {
             Debug.LogWarning("[VoiceInput] Recording finished without an AudioClip.");
-            ResumeWakeListening();
+            ResumeWakeListening(operationVersion);
             return;
         }
 
@@ -148,10 +153,16 @@ public class VoiceInputManager : MonoBehaviour
 
             var result = await speechApi.SpeechToText(wavData);
 
+            if (!IsCurrentVoiceOperation(operationVersion))
+            {
+                Debug.Log("[VoiceInput] Ignoring stale STT response because voice input was cancelled or disabled.");
+                return;
+            }
+
             if (result == null || string.IsNullOrWhiteSpace(result.transcription))
             {
                 Debug.LogWarning("[VoiceInput] STT returned an empty transcription.");
-                ResumeWakeListening();
+                ResumeWakeListening(operationVersion);
                 return;
             }
 
@@ -161,6 +172,12 @@ public class VoiceInputManager : MonoBehaviour
             if (ChatManager.Instance != null && ChatManager.Instance.IsReady)
             {
                 await ChatManager.Instance.ProcessMessage(text);
+
+                if (!IsCurrentVoiceOperation(operationVersion))
+                {
+                    Debug.Log("[VoiceInput] Voice chat finished after cancellation. Wake listening will stay stopped.");
+                    return;
+                }
             }
             else
             {
@@ -174,13 +191,24 @@ public class VoiceInputManager : MonoBehaviour
         }
         finally
         {
-            isProcessingVoice = false;
-            ResumeWakeListening();
+            if (IsCurrentVoiceOperation(operationVersion))
+            {
+                isProcessingVoice = false;
+                ResumeWakeListening(operationVersion);
+            }
         }
     }
 
     private void ResumeWakeListening()
     {
+        ResumeWakeListening(voiceOperationVersion);
+    }
+
+    private void ResumeWakeListening(int operationVersion)
+    {
+        if (!IsCurrentVoiceOperation(operationVersion))
+            return;
+
         if (PauseMenuUI.Instance != null && PauseMenuUI.Instance.IsPaused)
             return;
 
@@ -197,12 +225,21 @@ public class VoiceInputManager : MonoBehaviour
 
     public void CancelVoiceInput()
     {
+        voiceOperationVersion++;
+
         if (VoiceRecorder.Instance != null && VoiceRecorder.Instance.IsRecording)
             VoiceRecorder.Instance.CancelRecording();
 
         isProcessingVoice = false;
         VoiceUI.Instance?.Hide();
         WakeWordListener.Instance?.StopListening();
+    }
+
+    private bool IsCurrentVoiceOperation(int operationVersion)
+    {
+        return Instance == this &&
+               isActiveAndEnabled &&
+               operationVersion == voiceOperationVersion;
     }
 
     private void UpdateMicVolumeUI()

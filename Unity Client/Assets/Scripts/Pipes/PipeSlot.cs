@@ -43,6 +43,16 @@ public class PipeSlot : MonoBehaviour, IInteractable
 
     public void PlacePipe(Pipe pipe)
     {
+        PlacePipeInternal(pipe, logEvent: true, savePlacement: true);
+    }
+
+    public void RestorePipe(Pipe pipe)
+    {
+        PlacePipeInternal(pipe, logEvent: false, savePlacement: false);
+    }
+
+    private void PlacePipeInternal(Pipe pipe, bool logEvent, bool savePlacement)
+    {
         if (pipe == null)
         {
             Debug.LogWarning($"[PipeSlot] PlacePipe called with null pipe on slot '{name}'.");
@@ -74,7 +84,12 @@ public class PipeSlot : MonoBehaviour, IInteractable
 
         Debug.Log(
             $"[PipeSlot] Pipe placed. Slot={name}, Pipe={pipe.name}, Required={requiredColor}/{requiredType}, Actual={pipe.Color}/{pipe.Type}, Correct={isCorrect}");
-        LogPlacementEvent(pipe, isCorrect);
+
+        if (savePlacement)
+            PuzzleSaveManager.Instance?.SaveSlotPlacement(this, pipe);
+
+        if (logEvent)
+            LogPlacementEvent(pipe, isCorrect);
     }
 
     public void ClearPipeReference(Pipe pipe)
@@ -83,6 +98,12 @@ public class PipeSlot : MonoBehaviour, IInteractable
         {
             currentPipe = null;
             gameObject.layer = originalLayer;
+
+            if (PuzzleSaveManager.Instance == null ||
+                !PuzzleSaveManager.Instance.IsRestoring)
+            {
+                PuzzleSaveManager.Instance?.ClearSlotPlacement(this);
+            }
         }
     }
 

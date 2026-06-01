@@ -20,6 +20,7 @@ public class ContextLogger : MonoBehaviour
     private readonly List<PlayerEvent> eventBuffer = new();
 
     private bool isFlushing = false;
+    private TaskCompletionSource<bool> activeFlushCompletion;
 
     private Pipe currentHeldPipe;
     private bool missingSessionWarningShown = false;
@@ -192,13 +193,26 @@ public class ContextLogger : MonoBehaviour
 
     public async Task FlushEventsNow()
     {
+        Task existingFlush = activeFlushCompletion?.Task;
+        if (existingFlush != null)
+        {
+            Debug.Log("[ContextLogger] Waiting for active event flush before final flush.");
+            await existingFlush;
+        }
+
         await FlushEvents();
     }
 
     private async Task FlushEvents()
     {
         if (isFlushing)
+        {
+            Task activeFlush = activeFlushCompletion?.Task;
+            if (activeFlush != null)
+                await activeFlush;
+
             return;
+        }
 
         if (eventBuffer.Count == 0)
             return;
@@ -207,6 +221,7 @@ public class ContextLogger : MonoBehaviour
             return;
 
         isFlushing = true;
+        activeFlushCompletion = new TaskCompletionSource<bool>();
 
         List<PlayerEvent> batch = null;
 
@@ -235,6 +250,8 @@ public class ContextLogger : MonoBehaviour
         finally
         {
             isFlushing = false;
+            activeFlushCompletion?.TrySetResult(true);
+            activeFlushCompletion = null;
         }
     }
 

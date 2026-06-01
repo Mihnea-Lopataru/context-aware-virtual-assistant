@@ -44,7 +44,11 @@ public class ChatInputUI : MonoBehaviour
         chatInputArea.SetActive(false);
         loadingIndicator?.SetActive(false);
 
-        await WaitForChatManager();
+        if (!await WaitForChatManager())
+            return;
+
+        if (Instance != this || !isActiveAndEnabled || ChatManager.Instance == null)
+            return;
 
         ChatManager.Instance.OnProcessingStarted += HandleProcessingStarted;
         ChatManager.Instance.OnResponseReady += HandleResponse;
@@ -63,10 +67,17 @@ public class ChatInputUI : MonoBehaviour
         }
     }
 
-    private async Task WaitForChatManager()
+    private async Task<bool> WaitForChatManager()
     {
-        while (ChatManager.Instance == null || !ChatManager.Instance.IsReady)
+        while (Instance == this &&
+               (ChatManager.Instance == null || !ChatManager.Instance.IsReady))
+        {
             await Task.Yield();
+        }
+
+        return Instance == this &&
+               ChatManager.Instance != null &&
+               ChatManager.Instance.IsReady;
     }
 
     private bool ValidateReferences()
@@ -220,11 +231,23 @@ public class ChatInputUI : MonoBehaviour
 
     public void ForceClose()
     {
-        if (!isChatActive)
-            return;
+        if (isChatActive)
+        {
+            inputField.text = "";
+            CloseChat(resumeVoiceListening: false);
+        }
+        else
+        {
+            if (inputField != null)
+            {
+                inputField.text = "";
+                inputField.DeactivateInputField();
+            }
 
-        inputField.text = "";
-        CloseChat(resumeVoiceListening: false);
+            chatInputArea?.SetActive(false);
+        }
+
+        loadingIndicator?.SetActive(false);
     }
 
     private async void SubmitMessage()
@@ -253,12 +276,16 @@ public class ChatInputUI : MonoBehaviour
         {
             Debug.LogError("Chat error: " + e.Message);
             Debug.LogException(e);
-            HandleResponse("Something went wrong.", null);
+
+            if (CanHandleChatCallback())
+                HandleResponse("Something went wrong.", null);
         }
         finally
         {
             isRequestInProgress = false;
-            VoiceInputManager.Instance?.ResumeWakeListeningIfAvailable();
+
+            if (CanHandleChatCallback())
+                VoiceInputManager.Instance?.ResumeWakeListeningIfAvailable();
         }
     }
 
@@ -284,18 +311,22 @@ public class ChatInputUI : MonoBehaviour
         {
             Debug.LogError("Voice message error: " + e.Message);
             Debug.LogException(e);
-            HandleResponse("Something went wrong.", null);
+
+            if (CanHandleChatCallback())
+                HandleResponse("Something went wrong.", null);
         }
         finally
         {
             isRequestInProgress = false;
-            VoiceInputManager.Instance?.ResumeWakeListeningIfAvailable();
+
+            if (CanHandleChatCallback())
+                VoiceInputManager.Instance?.ResumeWakeListeningIfAvailable();
         }
     }
 
     private void HandleProcessingStarted()
     {
-        if (PauseMenuUI.Instance != null && PauseMenuUI.Instance.IsPaused)
+        if (!CanHandleChatCallback())
             return;
 
         loadingIndicator?.SetActive(true);
@@ -303,7 +334,7 @@ public class ChatInputUI : MonoBehaviour
 
     private void HandleResponse(string message, AudioClip clip)
     {
-        if (PauseMenuUI.Instance != null && PauseMenuUI.Instance.IsPaused)
+        if (!CanHandleChatCallback())
             return;
 
         StartCoroutine(ShowResultAndPlayAudio(message, clip));
@@ -312,6 +343,9 @@ public class ChatInputUI : MonoBehaviour
     private IEnumerator ShowResultAndPlayAudio(string message, AudioClip clip)
     {
         yield return null;
+
+        if (!CanHandleChatCallback())
+            yield break;
 
         loadingIndicator?.SetActive(false);
 
@@ -322,5 +356,16 @@ public class ChatInputUI : MonoBehaviour
         {
             SpeechManager.Instance?.Play(clip);
         }
+    }
+
+    private bool CanHandleChatCallback()
+    {
+        if (Instance != this || !isActiveAndEnabled)
+            return false;
+
+        if (PauseMenuUI.Instance != null && PauseMenuUI.Instance.IsPaused)
+            return false;
+
+        return true;
     }
 }

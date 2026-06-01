@@ -140,6 +140,8 @@ public class EndGameUI : MonoBehaviour
             { "correct_slots", slots.Length }
         });
 
+        PuzzleSaveManager.Instance?.ClearSave();
+
         StopGameplay();
 
         if (endScreenRoot != null)
