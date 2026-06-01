@@ -22,8 +22,20 @@ public class VoiceUI : MonoBehaviour
         Hide();
     }
 
+    private void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
+    }
+
     public void Show()
     {
+        if (microphoneUI == null)
+        {
+            Debug.LogWarning("[VoiceUI] Microphone UI is not assigned.");
+            return;
+        }
+
         microphoneUI.SetActive(true);
         currentAlpha = minAlpha;
         SetAlpha(currentAlpha);
@@ -31,7 +43,8 @@ public class VoiceUI : MonoBehaviour
 
     public void Hide()
     {
-        microphoneUI.SetActive(false);
+        if (microphoneUI != null)
+            microphoneUI.SetActive(false);
     }
 
     public void UpdateVolume(float level)

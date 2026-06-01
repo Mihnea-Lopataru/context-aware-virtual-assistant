@@ -34,7 +34,7 @@ public class UserManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("[UserManager] Duplicate instance detected. Destroying duplicate.");
+            Debug.Log("[UserManager] Duplicate instance detected. Destroying duplicate.");
             Destroy(gameObject);
         }
     }

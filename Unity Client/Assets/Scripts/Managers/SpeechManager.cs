@@ -16,7 +16,6 @@ public class SpeechManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
 
             audioSource = GetComponent<AudioSource>();
             audioSource.playOnAwake = playOnAwake;
@@ -25,9 +24,15 @@ public class SpeechManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("[SpeechManager] Duplicate instance detected. Destroying duplicate.");
+            Debug.Log("[SpeechManager] Duplicate instance detected. Destroying duplicate.");
             Destroy(gameObject);
         }
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
     }
 
     public void Play(AudioClip clip)

@@ -23,10 +23,15 @@ public class SpeechConfig : MonoBehaviour
         }
 
         Instance = this;
-        DontDestroyOnLoad(gameObject);
 
         LoadSettings();
         Debug.Log($"[SpeechConfig] Loaded settings. STT={GetSTTProviderString()}, TTS={GetTTSProviderString()}");
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
     }
 
     public void SetTTSProvider(TTSProvider provider)

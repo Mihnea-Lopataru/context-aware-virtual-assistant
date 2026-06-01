@@ -43,7 +43,7 @@ public class ApiClient : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("[ApiClient] Duplicate instance detected. Destroying duplicate.");
+            Debug.Log("[ApiClient] Duplicate instance detected. Destroying duplicate.");
             Destroy(gameObject);
         }
     }

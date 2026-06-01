@@ -25,7 +25,7 @@ public class SessionManager : MonoBehaviour
     {
         if (Instance != null && Instance != this)
         {
-            Debug.LogWarning("[SessionManager] Duplicate instance detected. Destroying duplicate.");
+            Debug.Log("[SessionManager] Duplicate instance detected. Destroying duplicate.");
             Destroy(gameObject);
             return;
         }
@@ -98,6 +98,12 @@ public class SessionManager : MonoBehaviour
         try
         {
             Debug.Log($"[SessionManager] Ending session {CurrentSession.id}.");
+
+            if (ContextLogger.Instance != null)
+            {
+                await ContextLogger.Instance.FlushEventsNow();
+            }
+
             await sessionApi.EndSession(CurrentSession.id);
             ContextLogger.Instance?.Clear();
             Debug.Log($"[SessionManager] Session ended: {CurrentSession.id}");

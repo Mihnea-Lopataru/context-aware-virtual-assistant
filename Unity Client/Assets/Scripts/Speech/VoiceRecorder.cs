@@ -32,7 +32,6 @@ public class VoiceRecorder : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
 
             if (Microphone.devices.Length > 0)
             {
@@ -48,6 +47,17 @@ public class VoiceRecorder : MonoBehaviour
         {
             Destroy(gameObject);
         }
+    }
+
+    private void OnDestroy()
+    {
+        if (isRecording)
+            CancelRecording();
+
+        if (Instance == this)
+            Instance = null;
+
+        OnRecordingFinished = null;
     }
 
     private void Update()

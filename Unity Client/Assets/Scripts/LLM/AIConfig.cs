@@ -12,14 +12,19 @@ public class AIConfig : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
             Debug.Log($"[AIConfig] LLM provider selected: {GetProviderString()}");
         }
         else
         {
-            Debug.LogWarning("[AIConfig] Duplicate instance detected. Destroying duplicate.");
+            Debug.Log("[AIConfig] Duplicate instance detected. Destroying duplicate.");
             Destroy(gameObject);
         }
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
     }
 
     public string GetProviderString()

@@ -20,11 +20,13 @@ public class ChatManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
 
             try
             {
                 await WaitForApiClient();
+
+                if (Instance != this)
+                    return;
 
                 hintService = new HintServiceUnity(ApiClient.Instance);
                 speechApi = new SpeechApi();
@@ -44,6 +46,16 @@ public class ChatManager : MonoBehaviour
         }
     }
 
+    private void OnDestroy()
+    {
+        if (Instance != this)
+            return;
+
+        OnProcessingStarted = null;
+        OnResponseReady = null;
+        Instance = null;
+    }
+
     private async Task WaitForApiClient()
     {
         while (ApiClient.Instance == null)
@@ -57,6 +69,9 @@ public class ChatManager : MonoBehaviour
 
         await WaitForApiClient();
 
+        if (Instance != this)
+            return;
+
         if (hintService == null)
             hintService = new HintServiceUnity(ApiClient.Instance);
 
@@ -67,6 +82,9 @@ public class ChatManager : MonoBehaviour
     public async Task ProcessMessage(string message)
     {
         await EnsureInitialized();
+
+        if (Instance != this)
+            return;
 
         if (IsProcessing)
         {
@@ -89,6 +107,9 @@ public class ChatManager : MonoBehaviour
 
             var response = await hintService.RequestHint(message);
 
+            if (Instance != this)
+                return;
+
             if (response == null || string.IsNullOrWhiteSpace(response.hint))
                 throw new Exception("Empty hint response");
 
@@ -99,6 +120,9 @@ public class ChatManager : MonoBehaviour
             try
             {
                 clip = await speechApi.TextToSpeech(hintText);
+
+                if (Instance != this)
+                    return;
             }
             catch (Exception e)
             {

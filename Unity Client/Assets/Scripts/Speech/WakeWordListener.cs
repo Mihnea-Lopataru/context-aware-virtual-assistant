@@ -21,7 +21,6 @@ public class WakeWordListener : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
 
             InitializeRecognizer();
         }
@@ -102,6 +101,9 @@ public class WakeWordListener : MonoBehaviour
 
     private void OnDestroy()
     {
+        if (Instance == this)
+            Instance = null;
+
         if (keywordRecognizer != null)
         {
             if (keywordRecognizer.IsRunning)

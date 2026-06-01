@@ -35,9 +35,11 @@ public class ContextLogger : MonoBehaviour
         }
 
         Instance = this;
-        DontDestroyOnLoad(gameObject);
 
         await WaitForApiClient();
+
+        if (Instance != this)
+            return;
 
         if (ApiClient.Instance == null)
         {
@@ -186,6 +188,11 @@ public class ContextLogger : MonoBehaviour
                 _ = FlushEvents();
             }
         }
+    }
+
+    public async Task FlushEventsNow()
+    {
+        await FlushEvents();
     }
 
     private async Task FlushEvents()

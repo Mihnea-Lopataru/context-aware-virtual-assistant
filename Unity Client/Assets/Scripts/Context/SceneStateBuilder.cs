@@ -23,6 +23,12 @@ public class SceneStateBuilder : MonoBehaviour
         Debug.Log($"[SceneStateBuilder] Initialized. SlotCount={slots?.Length ?? 0}");
     }
 
+    private void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
+    }
+
     public Dictionary<string, object> BuildState()
     {
         if (slots == null || slots.Length == 0)
