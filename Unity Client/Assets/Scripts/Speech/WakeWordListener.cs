@@ -43,10 +43,12 @@ public class WakeWordListener : MonoBehaviour
             keywordRecognizer.Start();
 
             isListening = true;
+            Debug.Log($"[WakeWord] Listening for wake word: '{wakeWord}'");
         }
         catch (Exception e)
         {
             Debug.LogError($"[WakeWord] Failed to initialize: {e.Message}");
+            Debug.LogException(e);
         }
     }
 
@@ -59,6 +61,7 @@ public class WakeWordListener : MonoBehaviour
 
         if (recognized.Contains(wakeWord))
         {
+            Debug.Log($"[WakeWord] Wake word detected. Confidence={args.confidence}, Text='{args.text}'");
             OnWakeWordDetected?.Invoke();
         }
     }
@@ -67,8 +70,16 @@ public class WakeWordListener : MonoBehaviour
     {
         if (keywordRecognizer != null && keywordRecognizer.IsRunning)
         {
-            keywordRecognizer.Stop();
-            isListening = false;
+            try
+            {
+                keywordRecognizer.Stop();
+                isListening = false;
+                Debug.Log("[WakeWord] Listening stopped.");
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"[WakeWord] Failed to stop listener: {e.Message}");
+            }
         }
     }
 
@@ -76,8 +87,16 @@ public class WakeWordListener : MonoBehaviour
     {
         if (keywordRecognizer != null && !keywordRecognizer.IsRunning)
         {
-            keywordRecognizer.Start();
-            isListening = true;
+            try
+            {
+                keywordRecognizer.Start();
+                isListening = true;
+                Debug.Log("[WakeWord] Listening started.");
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"[WakeWord] Failed to start listener: {e.Message}");
+            }
         }
     }
 

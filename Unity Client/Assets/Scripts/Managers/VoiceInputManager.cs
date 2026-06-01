@@ -32,10 +32,18 @@ public class VoiceInputManager : MonoBehaviour
         {
             WakeWordListener.Instance.OnWakeWordDetected += HandleWakeWord;
         }
+        else
+        {
+            Debug.LogWarning("[VoiceInput] WakeWordListener not found. Manual voice trigger will still work.");
+        }
 
         if (VoiceRecorder.Instance != null)
         {
             VoiceRecorder.Instance.OnRecordingFinished += HandleRecordingFinished;
+        }
+        else
+        {
+            Debug.LogWarning("[VoiceInput] VoiceRecorder not found at startup.");
         }
     }
 
@@ -96,6 +104,7 @@ public class VoiceInputManager : MonoBehaviour
         WakeWordListener.Instance?.StopListening();
 
         VoiceRecorder.Instance.StartRecording();
+        Debug.Log("[VoiceInput] Voice recording started.");
 
         VoiceUI.Instance?.Show();
     }
@@ -125,6 +134,7 @@ public class VoiceInputManager : MonoBehaviour
 
         if (clip == null)
         {
+            Debug.LogWarning("[VoiceInput] Recording finished without an AudioClip.");
             ResumeWakeListening();
             return;
         }
@@ -133,17 +143,20 @@ public class VoiceInputManager : MonoBehaviour
         {
             isProcessingVoice = true;
 
+            Debug.Log($"[VoiceInput] Processing recorded audio. ClipLength={clip.length:0.00}s, Frequency={clip.frequency}, Channels={clip.channels}");
             byte[] wavData = WavUtility.FromAudioClip(clip);
 
             var result = await speechApi.SpeechToText(wavData);
 
             if (result == null || string.IsNullOrWhiteSpace(result.transcription))
             {
+                Debug.LogWarning("[VoiceInput] STT returned an empty transcription.");
                 ResumeWakeListening();
                 return;
             }
 
             string text = result.transcription;
+            Debug.Log($"[VoiceInput] STT transcription received. Length={text.Length}");
 
             if (ChatManager.Instance != null && ChatManager.Instance.IsReady)
             {
@@ -157,6 +170,7 @@ public class VoiceInputManager : MonoBehaviour
         catch (Exception e)
         {
             Debug.LogError("[VoiceInput] STT failed: " + e.Message);
+            Debug.LogException(e);
         }
         finally
         {

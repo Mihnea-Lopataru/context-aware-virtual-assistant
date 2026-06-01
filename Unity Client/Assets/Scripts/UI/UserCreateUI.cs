@@ -40,21 +40,34 @@ public class UserCreateUI : MonoBehaviour
             return;
         }
 
+        if (UserManager.Instance == null)
+        {
+            Debug.LogError("[UserCreateUI] UserManager is not available.");
+            ShowMessage("User service is not ready.", true);
+            return;
+        }
+
         isLoading = true;
 
         try
         {
+            Debug.Log($"[UserCreateUI] Creating user. UsernameLength={username.Length}");
             var user = await UserManager.Instance.CreateUser(username);
+            Debug.Log($"[UserCreateUI] User created. UserId={user?.Id.ToString() ?? "<unknown>"}");
 
             usernameInput.text = "";
 
             ShowMessage("User created successfully!", false);
 
-            await userListUI.LoadUsers();
+            if (userListUI != null)
+                await userListUI.LoadUsers();
+            else
+                Debug.LogWarning("[UserCreateUI] UserListUI is not assigned. Skipping list refresh.");
         }
         catch (Exception e)
         {
             Debug.LogError($"Create user failed: {e.Message}");
+            Debug.LogException(e);
             ShowMessage(ParseError(e.Message), true);
         }
         finally

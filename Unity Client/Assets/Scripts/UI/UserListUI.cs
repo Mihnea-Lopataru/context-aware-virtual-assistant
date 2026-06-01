@@ -20,6 +20,7 @@ public class UserListUI : MonoBehaviour
         catch (Exception e)
         {
             Debug.LogError($"Failed to load users: {e.Message}");
+            Debug.LogException(e);
         }
     }
 
@@ -42,12 +43,25 @@ public class UserListUI : MonoBehaviour
 
     public async System.Threading.Tasks.Task LoadUsers()
     {
+        if (UserManager.Instance == null)
+        {
+            Debug.LogError("[UserListUI] UserManager is not available.");
+            Populate(null);
+            return;
+        }
+
         var users = await UserManager.Instance.GetUsers();
         Populate(users);
     }
 
     private void Populate(List<UserResponse> users)
     {
+        if (content == null || userItemPrefab == null)
+        {
+            Debug.LogError("[UserListUI] Content transform or user item prefab is not assigned.");
+            return;
+        }
+
         foreach (var item in items)
         {
             Destroy(item.gameObject);
@@ -78,6 +92,8 @@ public class UserListUI : MonoBehaviour
 
             items.Add(item);
         }
+
+        Debug.Log($"[UserListUI] Populated user list. Count={items.Count}");
     }
 
     private void OnUserClicked(UserResponse user)

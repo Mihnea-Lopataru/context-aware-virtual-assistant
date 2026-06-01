@@ -25,6 +25,15 @@ public class PlayerInteraction : MonoBehaviour
 
     public bool InputEnabled { get; set; } = true;
 
+    private void Awake()
+    {
+        if (playerCamera == null)
+            Debug.LogError("[PlayerInteraction] Player camera is not assigned.");
+
+        if (holdPoint == null)
+            Debug.LogError("[PlayerInteraction] Hold point is not assigned.");
+    }
+
     private void Update()
     {
         if (!InputEnabled || isAnimating)
@@ -45,6 +54,9 @@ public class PlayerInteraction : MonoBehaviour
 
     private void DetectTarget()
     {
+        if (playerCamera == null)
+            return;
+
         Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
 
         if (Physics.Raycast(ray, out RaycastHit hit, interactDistance, interactLayer))
@@ -124,7 +136,14 @@ public class PlayerInteraction : MonoBehaviour
         if (pipe == null || heldPipe != null)
             return;
 
+        if (holdPoint == null)
+        {
+            Debug.LogError("[PlayerInteraction] Cannot pick pipe because hold point is not assigned.");
+            return;
+        }
+
         heldPipe = pipe;
+        Debug.Log($"[PlayerInteraction] Picked pipe: {pipe}");
 
         ContextLogger.Instance?.SetHeldPipe(pipe);
 
@@ -147,6 +166,7 @@ public class PlayerInteraction : MonoBehaviour
             return;
 
         Pipe pipeToPlace = heldPipe;
+        Debug.Log($"[PlayerInteraction] Placing pipe '{pipeToPlace.name}' into slot '{slot.name}'.");
 
         ContextLogger.Instance?.ClearHeldPipe();
 
@@ -161,6 +181,7 @@ public class PlayerInteraction : MonoBehaviour
             return;
 
         Pipe pipeToReturn = heldPipe;
+        Debug.Log($"[PlayerInteraction] Dropping pipe: {pipeToReturn}");
 
         ContextLogger.Instance?.LogEvent(EventType.DROP_OBJECT, new Dictionary<string, object>
         {

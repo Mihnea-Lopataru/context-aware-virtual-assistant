@@ -21,9 +21,11 @@ public class SpeechManager : MonoBehaviour
             audioSource = GetComponent<AudioSource>();
             audioSource.playOnAwake = playOnAwake;
             audioSource.volume = volume;
+            Debug.Log($"[SpeechManager] Initialized. Volume={volume:0.##}");
         }
         else
         {
+            Debug.LogWarning("[SpeechManager] Duplicate instance detected. Destroying duplicate.");
             Destroy(gameObject);
         }
     }
@@ -32,12 +34,14 @@ public class SpeechManager : MonoBehaviour
     {
         if (clip == null)
         {
+            Debug.LogWarning("[SpeechManager] Play called with null clip.");
             return;
         }
 
         audioSource.Stop();
         audioSource.clip = clip;
         audioSource.Play();
+        Debug.Log($"[SpeechManager] Playing clip. Length={clip.length:0.00}s");
     }
 
     public void Stop()

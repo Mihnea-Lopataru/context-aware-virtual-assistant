@@ -22,6 +22,12 @@ public class PipeSlot : MonoBehaviour, IInteractable
     {
         originalLayer = gameObject.layer;
         nonInteractableLayer = LayerMask.NameToLayer("NonInteractable");
+
+        if (placementPoint == null)
+            Debug.LogError($"[PipeSlot] Placement point is not assigned on '{name}'.");
+
+        if (nonInteractableLayer < 0)
+            Debug.LogWarning("[PipeSlot] Layer 'NonInteractable' does not exist. Slot layer will remain unchanged after placement.");
     }
 
     public void Interact(PlayerInteraction player)
@@ -37,8 +43,17 @@ public class PipeSlot : MonoBehaviour, IInteractable
 
     public void PlacePipe(Pipe pipe)
     {
-        if (pipe == null || placementPoint == null)
+        if (pipe == null)
+        {
+            Debug.LogWarning($"[PipeSlot] PlacePipe called with null pipe on slot '{name}'.");
             return;
+        }
+
+        if (placementPoint == null)
+        {
+            Debug.LogError($"[PipeSlot] Cannot place pipe '{pipe.name}' because placement point is not assigned on slot '{name}'.");
+            return;
+        }
 
         ValidateAgainstKnowledge(pipe);
 
@@ -51,11 +66,14 @@ public class PipeSlot : MonoBehaviour, IInteractable
         pipe.transform.localPosition = Vector3.zero;
         pipe.transform.localRotation = Quaternion.identity;
 
-        gameObject.layer = nonInteractableLayer;
+        if (nonInteractableLayer >= 0)
+            gameObject.layer = nonInteractableLayer;
 
         bool isCorrect = IsCorrectPipe(pipe);
         pipe.SetPlacedCorrectly(isCorrect);
 
+        Debug.Log(
+            $"[PipeSlot] Pipe placed. Slot={name}, Pipe={pipe.name}, Required={requiredColor}/{requiredType}, Actual={pipe.Color}/{pipe.Type}, Correct={isCorrect}");
         LogPlacementEvent(pipe, isCorrect);
     }
 

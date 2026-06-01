@@ -58,6 +58,7 @@ public class VoiceRecorder : MonoBehaviour
 
         if (recordingTimer >= maxRecordingLength)
         {
+            Debug.Log($"[VoiceRecorder] Max recording length reached ({maxRecordingLength}s). Stopping recording.");
             StopRecording();
             return;
         }
@@ -77,17 +78,35 @@ public class VoiceRecorder : MonoBehaviour
             return;
         }
 
-        recordingClip = Microphone.Start(
-            microphoneDevice,
-            false,
-            maxRecordingLength,
-            sampleRate
-        );
+        try
+        {
+            recordingClip = Microphone.Start(
+                microphoneDevice,
+                false,
+                maxRecordingLength,
+                sampleRate
+            );
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[VoiceRecorder] Failed to start microphone '{microphoneDevice}': {e.Message}");
+            Debug.LogException(e);
+            recordingClip = null;
+            return;
+        }
+
+        if (recordingClip == null)
+        {
+            Debug.LogError($"[VoiceRecorder] Microphone.Start returned null for device '{microphoneDevice}'.");
+            return;
+        }
 
         isRecording = true;
         silenceTimer = 0f;
         recordingTimer = 0f;
         currentVolume = 0f;
+
+        Debug.Log($"[VoiceRecorder] Recording started. Device={microphoneDevice}, SampleRate={sampleRate}, MaxLength={maxRecordingLength}s");
     }
 
     public void StopRecording()
@@ -102,9 +121,18 @@ public class VoiceRecorder : MonoBehaviour
         isRecording = false;
         currentVolume = 0f;
 
+        if (recordingClip == null)
+        {
+            Debug.LogWarning("[VoiceRecorder] Recording clip was null when stopping.");
+            OnRecordingFinished?.Invoke(null);
+            return;
+        }
+
         if (position <= 0)
         {
+            Debug.LogWarning($"[VoiceRecorder] Recording stopped with no captured samples. Position={position}");
             recordingClip = null;
+            OnRecordingFinished?.Invoke(null);
             return;
         }
 
@@ -123,6 +151,7 @@ public class VoiceRecorder : MonoBehaviour
 
         recordingClip = null;
 
+        Debug.Log($"[VoiceRecorder] Recording stopped. Samples={position}, Duration={(float)position / sampleRate:0.00}s, Channels={finalClip.channels}");
         OnRecordingFinished?.Invoke(finalClip);
     }
 
@@ -138,6 +167,8 @@ public class VoiceRecorder : MonoBehaviour
         recordingTimer = 0f;
         currentVolume = 0f;
         recordingClip = null;
+
+        Debug.Log("[VoiceRecorder] Recording cancelled.");
     }
 
     private void UpdateVolume()
@@ -170,6 +201,7 @@ public class VoiceRecorder : MonoBehaviour
 
             if (silenceTimer >= silenceDuration)
             {
+                Debug.Log($"[VoiceRecorder] Silence detected for {silenceDuration:0.##}s. Stopping recording.");
                 StopRecording();
             }
         }

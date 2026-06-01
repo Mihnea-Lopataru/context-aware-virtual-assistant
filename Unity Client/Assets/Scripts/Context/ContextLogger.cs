@@ -22,6 +22,8 @@ public class ContextLogger : MonoBehaviour
     private bool isFlushing = false;
 
     private Pipe currentHeldPipe;
+    private bool missingSessionWarningShown = false;
+    private bool missingPlayerWarningShown = false;
 
     private async void Awake()
     {
@@ -44,10 +46,23 @@ public class ContextLogger : MonoBehaviour
         }
 
         eventsApi = new EventsApi(ApiClient.Instance);
+        Debug.Log($"[ContextLogger] Initialized. SendInterval={sendInterval:0.##}s, MaxBatchSize={maxBatchSize}");
     }
 
     private void Start()
     {
+        if (sendInterval <= 0f)
+        {
+            Debug.LogWarning($"[ContextLogger] Invalid send interval {sendInterval}. Using 5 seconds.");
+            sendInterval = 5f;
+        }
+
+        if (maxBatchSize <= 0)
+        {
+            Debug.LogWarning($"[ContextLogger] Invalid max batch size {maxBatchSize}. Using 20.");
+            maxBatchSize = 20;
+        }
+
         if (sendCoroutine == null)
         {
             sendCoroutine = StartCoroutine(SendLoop());
@@ -72,17 +87,37 @@ public class ContextLogger : MonoBehaviour
 
     public void LogEvent(string eventType, Dictionary<string, object> context = null)
     {
-        if (SessionManager.Instance == null || !SessionManager.Instance.HasActiveSession)
+        if (string.IsNullOrWhiteSpace(eventType))
         {
-            Debug.LogWarning("[ContextLogger] No active session. Event ignored.");
+            Debug.LogWarning("[ContextLogger] Event ignored because event type is empty.");
             return;
         }
 
-        if (playerTransform == null)
+        if (SessionManager.Instance == null || !SessionManager.Instance.HasActiveSession)
         {
-            Debug.LogWarning("[ContextLogger] PlayerTransform not assigned.");
+            if (!missingSessionWarningShown)
+            {
+                Debug.LogWarning($"[ContextLogger] No active session. Event ignored: {eventType}");
+                missingSessionWarningShown = true;
+            }
+
             return;
         }
+
+        missingSessionWarningShown = false;
+
+        if (playerTransform == null)
+        {
+            if (!missingPlayerWarningShown)
+            {
+                Debug.LogWarning("[ContextLogger] PlayerTransform not assigned. Events cannot include player state.");
+                missingPlayerWarningShown = true;
+            }
+
+            return;
+        }
+
+        missingPlayerWarningShown = false;
 
         if (context == null)
             context = new Dictionary<string, object>();
@@ -117,6 +152,11 @@ public class ContextLogger : MonoBehaviour
         };
 
         eventBuffer.Add(playerEvent);
+
+        if (eventType != EventType.LOOK_AT.ToApiString())
+        {
+            Debug.Log($"[ContextLogger] Queued event '{eventType}'. BufferSize={eventBuffer.Count}");
+        }
 
         if (eventType == EventType.PICK_OBJECT.ToApiString() ||
             eventType == EventType.PLACE_OBJECT.ToApiString() ||
@@ -170,14 +210,18 @@ public class ContextLogger : MonoBehaviour
             batch = new List<PlayerEvent>(eventBuffer);
             eventBuffer.Clear();
 
+            Debug.Log($"[ContextLogger] Flushing {batch.Count} event(s) for session {sessionId}.");
             await eventsApi.SendEvents(sessionId, batch);
         }
         catch (System.Exception ex)
         {
-            Debug.LogError($"[ContextLogger] Failed to send events: {ex.Message}");
+            Debug.LogError($"[ContextLogger] Failed to send events. Re-queueing {batch?.Count ?? 0} event(s): {ex.Message}");
+            Debug.LogException(ex);
 
             if (batch != null)
             {
+                batch.AddRange(eventBuffer);
+                eventBuffer.Clear();
                 eventBuffer.AddRange(batch);
             }
         }
@@ -189,11 +233,25 @@ public class ContextLogger : MonoBehaviour
 
     private async void OnApplicationQuit()
     {
+        Debug.Log($"[ContextLogger] Application quitting. Flushing remaining events: {eventBuffer.Count}");
         await FlushEvents();
+    }
+
+    private void OnDestroy()
+    {
+        if (sendCoroutine != null)
+        {
+            StopCoroutine(sendCoroutine);
+            sendCoroutine = null;
+        }
+
+        if (Instance == this)
+            Instance = null;
     }
 
     public void Clear()
     {
+        Debug.Log($"[ContextLogger] Clearing buffered events. Count={eventBuffer.Count}");
         eventBuffer.Clear();
         currentHeldPipe = null;
     }

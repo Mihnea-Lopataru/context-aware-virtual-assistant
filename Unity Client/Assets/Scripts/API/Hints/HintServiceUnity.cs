@@ -12,15 +12,19 @@ public class HintServiceUnity
 
     public async Task<HintResponse> RequestHint(string message)
     {
-        if (!SessionManager.Instance.HasActiveSession)
+        if (SessionManager.Instance == null || !SessionManager.Instance.HasActiveSession)
         {
-            Debug.LogError("No active session.");
+            Debug.LogError("[HintService] No active session. Cannot request hint.");
             return null;
         }
 
         int sessionId = SessionManager.Instance.CurrentSessionId;
 
         var knowledge = PuzzleKnowledgeLoader.Instance;
+        if (knowledge == null)
+        {
+            Debug.LogWarning("[HintService] Puzzle knowledge is not loaded. Hint request will continue without knowledge.");
+        }
 
         return await hintApi.GenerateHint(sessionId, message, knowledge);
     }

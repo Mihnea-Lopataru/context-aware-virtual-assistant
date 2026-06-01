@@ -25,6 +25,7 @@ public class SessionManager : MonoBehaviour
     {
         if (Instance != null && Instance != this)
         {
+            Debug.LogWarning("[SessionManager] Duplicate instance detected. Destroying duplicate.");
             Destroy(gameObject);
             return;
         }
@@ -35,6 +36,7 @@ public class SessionManager : MonoBehaviour
         await WaitForApiClient();
 
         sessionApi = new SessionApi(ApiClient.Instance);
+        Debug.Log("[SessionManager] Initialized.");
     }
 
     private async Task WaitForApiClient()
@@ -52,20 +54,38 @@ public class SessionManager : MonoBehaviour
 
         if (user == null)
         {
-            Debug.LogError("No user selected. Cannot start session.");
+            Debug.LogError("[SessionManager] No user selected. Cannot start session.");
             return null;
         }
 
         this.currentScene = currentScene;
         this.currentObjective = currentObjective;
 
-        CurrentSession = await sessionApi.StartSession(
-            user.Id,
-            currentScene,
-            currentObjective
-        );
+        try
+        {
+            Debug.Log($"[SessionManager] Starting session. UserId={user.Id}, Scene={currentScene ?? "<none>"}, Objective={currentObjective ?? "<none>"}");
+
+            CurrentSession = await sessionApi.StartSession(
+                user.Id,
+                currentScene,
+                currentObjective
+            );
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[SessionManager] Failed to start session for user {user.Id}: {e.Message}");
+            Debug.LogException(e);
+            throw;
+        }
+
+        if (CurrentSession == null)
+        {
+            Debug.LogError("[SessionManager] Backend returned an empty session response.");
+            return null;
+        }
 
         StartHeartbeat();
+        Debug.Log($"[SessionManager] Session started. SessionId={CurrentSessionId}");
 
         return CurrentSession;
     }
@@ -77,12 +97,15 @@ public class SessionManager : MonoBehaviour
 
         try
         {
+            Debug.Log($"[SessionManager] Ending session {CurrentSession.id}.");
             await sessionApi.EndSession(CurrentSession.id);
             ContextLogger.Instance?.Clear();
+            Debug.Log($"[SessionManager] Session ended: {CurrentSession.id}");
         }
         catch (Exception e)
         {
             Debug.LogWarning($"[Session] End failed: {e.Message}");
+            Debug.LogException(e);
         }
 
         StopHeartbeat();
@@ -129,10 +152,13 @@ public class SessionManager : MonoBehaviour
                 currentScene,
                 currentObjective
             );
+
+            Debug.Log($"[SessionManager] Heartbeat sent. SessionId={CurrentSessionId}");
         }
         catch (Exception ex)
         {
             Debug.LogWarning($"[Session] Heartbeat failed: {ex.Message}");
+            Debug.LogException(ex);
         }
     }
 
@@ -142,9 +168,13 @@ public class SessionManager : MonoBehaviour
         {
             try
             {
+                Debug.Log($"[SessionManager] Application quit. Ending session {CurrentSession.id}.");
                 sessionApi.EndSession(CurrentSession.id).Wait(2000);
             }
-            catch { }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"[SessionManager] Failed to end session during quit: {e.Message}");
+            }
         }
     }
 }

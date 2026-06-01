@@ -22,13 +22,24 @@ public class ChatManager : MonoBehaviour
             Instance = this;
             DontDestroyOnLoad(gameObject);
 
-            await WaitForApiClient();
+            try
+            {
+                await WaitForApiClient();
 
-            hintService = new HintServiceUnity(ApiClient.Instance);
-            speechApi = new SpeechApi();
+                hintService = new HintServiceUnity(ApiClient.Instance);
+                speechApi = new SpeechApi();
+
+                Debug.Log("[ChatManager] Initialized.");
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[ChatManager] Initialization failed: {e.Message}");
+                Debug.LogException(e);
+            }
         }
         else
         {
+            Debug.LogWarning("[ChatManager] Duplicate instance detected. Destroying duplicate.");
             Destroy(gameObject);
         }
     }
@@ -72,6 +83,7 @@ public class ChatManager : MonoBehaviour
         try
         {
             IsProcessing = true;
+            Debug.Log($"[ChatManager] Processing message. Length={message.Length}, SessionId={SessionManager.Instance?.CurrentSessionId ?? -1}");
 
             OnProcessingStarted?.Invoke();
 
@@ -90,14 +102,17 @@ public class ChatManager : MonoBehaviour
             }
             catch (Exception e)
             {
-                Debug.LogWarning("[ChatManager] TTS failed: " + e.Message);
+                Debug.LogWarning("[ChatManager] TTS failed. Returning text-only response: " + e.Message);
+                Debug.LogException(e);
             }
 
+            Debug.Log($"[ChatManager] Response ready. HintLength={hintText.Length}, HasAudio={clip != null}");
             OnResponseReady?.Invoke(hintText, clip);
         }
         catch (Exception e)
         {
             Debug.LogError("[ChatManager] Error: " + e.Message);
+            Debug.LogException(e);
 
             OnResponseReady?.Invoke("Something went wrong.", null);
         }

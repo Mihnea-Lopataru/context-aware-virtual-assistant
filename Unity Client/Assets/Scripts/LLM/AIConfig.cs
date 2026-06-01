@@ -13,20 +13,26 @@ public class AIConfig : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            Debug.Log($"[AIConfig] LLM provider selected: {GetProviderString()}");
         }
         else
         {
+            Debug.LogWarning("[AIConfig] Duplicate instance detected. Destroying duplicate.");
             Destroy(gameObject);
         }
     }
 
     public string GetProviderString()
     {
-        return provider switch
+        switch (provider)
         {
-            LLMProvider.Ollama => "ollama",
-            LLMProvider.OpenAI => "openai",
-            _ => "ollama"
-        };
+            case LLMProvider.Ollama:
+                return "ollama";
+            case LLMProvider.OpenAI:
+                return "openai";
+            default:
+                Debug.LogWarning($"[AIConfig] Unknown provider '{provider}'. Falling back to ollama.");
+                return "ollama";
+        }
     }
 }

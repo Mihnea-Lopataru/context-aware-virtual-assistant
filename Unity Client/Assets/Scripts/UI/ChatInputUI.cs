@@ -38,6 +38,9 @@ public class ChatInputUI : MonoBehaviour
 
     private async void Start()
     {
+        if (!ValidateReferences())
+            return;
+
         chatInputArea.SetActive(false);
         loadingIndicator?.SetActive(false);
 
@@ -45,6 +48,7 @@ public class ChatInputUI : MonoBehaviour
 
         ChatManager.Instance.OnProcessingStarted += HandleProcessingStarted;
         ChatManager.Instance.OnResponseReady += HandleResponse;
+        Debug.Log("[ChatInputUI] Ready.");
     }
 
     private void OnDestroy()
@@ -63,6 +67,28 @@ public class ChatInputUI : MonoBehaviour
     {
         while (ChatManager.Instance == null || !ChatManager.Instance.IsReady)
             await Task.Yield();
+    }
+
+    private bool ValidateReferences()
+    {
+        bool isValid = true;
+
+        if (chatInputArea == null)
+        {
+            Debug.LogError("[ChatInputUI] Chat input area is not assigned.");
+            isValid = false;
+        }
+
+        if (inputField == null)
+        {
+            Debug.LogError("[ChatInputUI] Input field is not assigned.");
+            isValid = false;
+        }
+
+        if (chatResultUI == null)
+            Debug.LogWarning("[ChatInputUI] Chat result UI is not assigned.");
+
+        return isValid;
     }
 
     private void Update()
@@ -217,11 +243,16 @@ public class ChatInputUI : MonoBehaviour
 
         try
         {
+            if (ChatManager.Instance == null)
+                throw new System.InvalidOperationException("ChatManager is not available.");
+
+            Debug.Log($"[ChatInputUI] Sending typed message. Length={message.Length}");
             await ChatManager.Instance.ProcessMessage(message);
         }
         catch (System.Exception e)
         {
             Debug.LogError("Chat error: " + e.Message);
+            Debug.LogException(e);
             HandleResponse("Something went wrong.", null);
         }
         finally
@@ -243,11 +274,16 @@ public class ChatInputUI : MonoBehaviour
 
         try
         {
+            if (ChatManager.Instance == null)
+                throw new System.InvalidOperationException("ChatManager is not available.");
+
+            Debug.Log($"[ChatInputUI] Sending voice message. Length={message?.Length ?? 0}");
             await ChatManager.Instance.ProcessMessage(message);
         }
         catch (System.Exception e)
         {
             Debug.LogError("Voice message error: " + e.Message);
+            Debug.LogException(e);
             HandleResponse("Something went wrong.", null);
         }
         finally
@@ -280,6 +316,7 @@ public class ChatInputUI : MonoBehaviour
         loadingIndicator?.SetActive(false);
 
         chatResultUI?.ShowResult(message);
+        Debug.Log($"[ChatInputUI] Showing response. MessageLength={message?.Length ?? 0}, HasAudio={clip != null}");
 
         if (clip != null)
         {

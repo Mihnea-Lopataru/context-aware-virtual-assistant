@@ -26,6 +26,7 @@ public class SpeechConfig : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         LoadSettings();
+        Debug.Log($"[SpeechConfig] Loaded settings. STT={GetSTTProviderString()}, TTS={GetTTSProviderString()}");
     }
 
     public void SetTTSProvider(TTSProvider provider)
@@ -35,6 +36,7 @@ public class SpeechConfig : MonoBehaviour
 
         ttsProvider = provider;
         SaveTTSProvider();
+        Debug.Log($"[SpeechConfig] TTS provider changed: {GetTTSProviderString()}");
     }
 
     public void SetSTTProvider(STTProvider provider)
@@ -44,26 +46,35 @@ public class SpeechConfig : MonoBehaviour
 
         sttProvider = provider;
         SaveSTTProvider();
+        Debug.Log($"[SpeechConfig] STT provider changed: {GetSTTProviderString()}");
     }
 
     public string GetTTSProviderString()
     {
-        return ttsProvider switch
+        switch (ttsProvider)
         {
-            TTSProvider.Piper => "piper",
-            TTSProvider.Google => "google",
-            _ => "piper"
-        };
+            case TTSProvider.Piper:
+                return "piper";
+            case TTSProvider.Google:
+                return "google";
+            default:
+                Debug.LogWarning($"[SpeechConfig] Unknown TTS provider '{ttsProvider}'. Falling back to piper.");
+                return "piper";
+        }
     }
 
     public string GetSTTProviderString()
     {
-        return sttProvider switch
+        switch (sttProvider)
         {
-            STTProvider.Vosk => "vosk",
-            STTProvider.Google => "google",
-            _ => "vosk"
-        };
+            case STTProvider.Vosk:
+                return "vosk";
+            case STTProvider.Google:
+                return "google";
+            default:
+                Debug.LogWarning($"[SpeechConfig] Unknown STT provider '{sttProvider}'. Falling back to vosk.");
+                return "vosk";
+        }
     }
 
     public void SaveSettings()

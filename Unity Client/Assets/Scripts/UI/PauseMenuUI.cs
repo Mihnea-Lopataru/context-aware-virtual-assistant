@@ -28,15 +28,32 @@ public class PauseMenuUI : MonoBehaviour
 
     private void Awake()
     {
+        if (Instance != null && Instance != this)
+        {
+            Debug.LogWarning("[PauseMenuUI] Duplicate instance detected. Destroying duplicate.");
+            Destroy(gameObject);
+            return;
+        }
+
         Instance = this;
     }
 
     private void Start()
     {
-        pauseMenuRoot.SetActive(false);
+        if (pauseMenuRoot != null)
+            pauseMenuRoot.SetActive(false);
+        else
+            Debug.LogError("[PauseMenuUI] Pause menu root is not assigned.");
 
-        resumeButton.onClick.AddListener(Resume);
-        menuButton.onClick.AddListener(() => _ = QuitAsync());
+        if (resumeButton != null)
+            resumeButton.onClick.AddListener(Resume);
+        else
+            Debug.LogError("[PauseMenuUI] Resume button is not assigned.");
+
+        if (menuButton != null)
+            menuButton.onClick.AddListener(() => _ = QuitAsync());
+        else
+            Debug.LogError("[PauseMenuUI] Menu button is not assigned.");
     }
 
     private void OnDestroy()
@@ -44,8 +61,8 @@ public class PauseMenuUI : MonoBehaviour
         if (Instance == this)
             Instance = null;
 
-        resumeButton.onClick.RemoveListener(Resume);
-        menuButton.onClick.RemoveAllListeners();
+        resumeButton?.onClick.RemoveListener(Resume);
+        menuButton?.onClick.RemoveAllListeners();
     }
 
     private void Update()
@@ -69,7 +86,7 @@ public class PauseMenuUI : MonoBehaviour
         FindAnyObjectByType<ChatInputUI>()?.ForceClose();
         VoiceInputManager.Instance?.CancelVoiceInput();
 
-        pauseMenuRoot.SetActive(true);
+        pauseMenuRoot?.SetActive(true);
 
         SetGameplayInput(false);
 
@@ -86,7 +103,7 @@ public class PauseMenuUI : MonoBehaviour
 
         isPaused = false;
 
-        pauseMenuRoot.SetActive(false);
+        pauseMenuRoot?.SetActive(false);
 
         SetGameplayInput(true);
 
@@ -105,8 +122,11 @@ public class PauseMenuUI : MonoBehaviour
 
         SetGameplayInput(false);
 
-        resumeButton.interactable = false;
-        menuButton.interactable = false;
+        if (resumeButton != null)
+            resumeButton.interactable = false;
+
+        if (menuButton != null)
+            menuButton.interactable = false;
 
         try
         {
@@ -122,9 +142,11 @@ public class PauseMenuUI : MonoBehaviour
         catch (System.Exception e)
         {
             Debug.LogError("Failed to end session from pause menu: " + e.Message);
+            Debug.LogException(e);
         }
         finally
         {
+            Debug.Log($"[PauseMenuUI] Loading main menu scene: {mainMenuSceneName}");
             SceneManager.LoadScene(mainMenuSceneName);
         }
     }

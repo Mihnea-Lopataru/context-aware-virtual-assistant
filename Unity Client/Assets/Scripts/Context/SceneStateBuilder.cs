@@ -6,19 +6,33 @@ public class SceneStateBuilder : MonoBehaviour
     public static SceneStateBuilder Instance;
 
     private PipeSlot[] slots;
+    private bool warnedNoSlots;
 
     private void Awake()
     {
+        if (Instance != null && Instance != this)
+        {
+            Debug.LogWarning("[SceneStateBuilder] Duplicate instance detected. Destroying duplicate.");
+            Destroy(gameObject);
+            return;
+        }
+
         Instance = this;
 
         slots = FindObjectsByType<PipeSlot>(FindObjectsSortMode.None);
+        Debug.Log($"[SceneStateBuilder] Initialized. SlotCount={slots?.Length ?? 0}");
     }
 
     public Dictionary<string, object> BuildState()
     {
         if (slots == null || slots.Length == 0)
         {
-            Debug.LogWarning("[SceneStateBuilder] No pipe slots found.");
+            if (!warnedNoSlots)
+            {
+                Debug.LogWarning("[SceneStateBuilder] No pipe slots found.");
+                warnedNoSlots = true;
+            }
+
             return new Dictionary<string, object>();
         }
 

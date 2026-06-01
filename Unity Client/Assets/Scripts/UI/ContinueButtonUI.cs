@@ -15,36 +15,51 @@ public class ContinueButtonUI : MonoBehaviour
     [Header("Loading")]
     [SerializeField] private GameObject loadingPanel;
 
+    private bool isSubscribedToUserManager;
+
     private async void Start()
     {
         await System.Threading.Tasks.Task.Yield();
 
         UpdateButtonState();
 
-        if (UserManager.Instance != null)
-        {
-            UserManager.Instance.OnUserChanged += HandleUserChanged;
-        }
+        SubscribeToUserManager();
 
-        continueButton.onClick.AddListener(OnContinueClicked);
+        if (continueButton != null)
+            continueButton.onClick.AddListener(OnContinueClicked);
+        else
+            Debug.LogError("[ContinueButtonUI] Continue button is not assigned.");
     }
 
     private void OnEnable()
     {
-        if (UserManager.Instance != null)
-        {
-            UserManager.Instance.OnUserChanged += HandleUserChanged;
-        }
+        SubscribeToUserManager();
 
         UpdateButtonState();
     }
 
     private void OnDisable()
     {
-        if (UserManager.Instance != null)
+        if (UserManager.Instance != null && isSubscribedToUserManager)
         {
             UserManager.Instance.OnUserChanged -= HandleUserChanged;
+            isSubscribedToUserManager = false;
         }
+    }
+
+    private void OnDestroy()
+    {
+        if (continueButton != null)
+            continueButton.onClick.RemoveListener(OnContinueClicked);
+    }
+
+    private void SubscribeToUserManager()
+    {
+        if (UserManager.Instance == null || isSubscribedToUserManager)
+            return;
+
+        UserManager.Instance.OnUserChanged += HandleUserChanged;
+        isSubscribedToUserManager = true;
     }
 
     private void HandleUserChanged(UserResponse user)
@@ -57,12 +72,13 @@ public class ContinueButtonUI : MonoBehaviour
         bool hasUser = UserManager.Instance != null &&
                        UserManager.Instance.CurrentUser != null;
 
-        continueButton.interactable = hasUser;
+        if (continueButton != null)
+            continueButton.interactable = hasUser;
     }
 
     public void OnContinueClicked()
     {
-        if (!continueButton.interactable)
+        if (continueButton == null || !continueButton.interactable)
             return;
 
         StartCoroutine(ContinueFlow());
@@ -76,14 +92,33 @@ public class ContinueButtonUI : MonoBehaviour
 
         yield return new WaitForSeconds(0.3f);
 
+        if (UserManager.Instance == null)
+        {
+            Debug.LogError("[ContinueButtonUI] UserManager is not available.");
+            ShowLoading(false);
+            continueButton.interactable = true;
+            yield break;
+        }
+
         var user = UserManager.Instance.CurrentUser;
 
         if (user == null)
         {
-            Debug.LogError("No user selected!");
+            Debug.LogError("[ContinueButtonUI] No user selected.");
             ShowLoading(false);
+            continueButton.interactable = true;
             yield break;
         }
+
+        if (SessionManager.Instance == null)
+        {
+            Debug.LogError("[ContinueButtonUI] SessionManager is not available.");
+            ShowLoading(false);
+            continueButton.interactable = true;
+            yield break;
+        }
+
+        Debug.Log($"[ContinueButtonUI] Continue clicked. UserId={user.Id}, NextScene={nextSceneName}");
 
         var task = SessionManager.Instance.StartSession(
             nextSceneName,
@@ -96,17 +131,26 @@ public class ContinueButtonUI : MonoBehaviour
         if (task.Exception != null)
         {
             Debug.LogError($"Failed to start session: {task.Exception}");
+            Debug.LogException(task.Exception);
             ShowLoading(false);
             continueButton.interactable = true;
             yield break;
         }
 
         var loadOp = SceneManager.LoadSceneAsync(nextSceneName);
+        if (loadOp == null)
+        {
+            Debug.LogError($"[ContinueButtonUI] Failed to start loading scene '{nextSceneName}'.");
+            ShowLoading(false);
+            continueButton.interactable = true;
+            yield break;
+        }
 
         while (!loadOp.isDone)
             yield return null;
 
         ShowLoading(false);
+        Debug.Log($"[ContinueButtonUI] Scene loaded: {nextSceneName}");
     }
     private void ShowLoading(bool show)
     {
