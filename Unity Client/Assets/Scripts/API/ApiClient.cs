@@ -20,7 +20,7 @@ public class ApiClient : MonoBehaviour
     [Header("API Config")]
     [SerializeField] private string backendBaseUrl = "http://localhost:8000";
     [SerializeField] private string speechBaseUrl = "http://localhost:8001";
-    [SerializeField] private int requestTimeoutSeconds = 30;
+    [SerializeField] private int requestTimeoutSeconds = 120;
     [SerializeField] private bool logSuccessfulRequests = true;
 
     private Dictionary<ApiServiceType, string> baseUrls;

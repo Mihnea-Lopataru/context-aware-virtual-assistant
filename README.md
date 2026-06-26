@@ -51,6 +51,7 @@ flowchart LR
 |   |-- docker-compose.yml
 |   `-- run.sh
 |-- Unity Client/             # Unity project
+|-- Deployment/               # Exported Windows build; contains the runnable .exe
 |-- Evaluation/               # Evaluation runner and test cases
 |-- Diagrams/
 |-- LICENSE
@@ -214,15 +215,25 @@ The selected provider mode is stored locally with Unity PlayerPrefs.
 
 ### Option 2: Run the Deployed Build
 
-The deployment build is placed in:
+An exported Windows build is included in the deployment folder:
 
 ```text
-Deployment/
+Deployment/Unity Client.exe
 ```
 
-Run the `.exe` file in that folder to start the game directly without opening
-the Unity Editor. The backend stack still needs to be running before using the
-assistant features.
+Run this `.exe` to start the game directly without opening the Unity Editor.
+The backend stack still needs to be running before using the assistant features,
+because the build connects to the same local service URLs:
+
+```text
+Backend base URL: http://localhost:8000
+Speech base URL:  http://localhost:8001
+```
+
+Keep `Unity Client.exe`, `UnityPlayer.dll`, `UnityCrashHandler64.exe`,
+`Unity Client_Data/`, and the other files inside `Deployment/` together. Unity
+builds depend on the adjacent data folder, so moving only the `.exe` elsewhere
+can prevent the exported application from starting correctly.
 
 ## Gameplay Flow
 
